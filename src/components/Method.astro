@@ -1,0 +1,256 @@
+---
+import { steps } from '../data/site.js';
+// panel colours alternate like the reference: dark, darker, paper, dark
+const tones = ['p-ink', 'p-ink2', 'p-paper', 'p-ink'];
+---
+
+<section class="method" id="method">
+  <div class="method__intro">
+    <div class="method__row">
+      <span class="eyebrow method__k">03&nbsp;&nbsp; Approach</span>
+      <p class="method__lead" data-reveal>
+        One direction, held from the first call to the last detail: strict enough to move fast, loose enough to leave room
+        for the unexpected.
+      </p>
+    </div>
+    <h2 class="method__title">
+      <span class="mask serif method__la"><span data-reveal-line>The</span></span>
+      <span class="mask" data-fit><span data-reveal-line>METHOD</span></span>
+    </h2>
+    <div class="method__sub">
+      <p class="serif">Four steps. No shortcuts.</p>
+      <span class="eyebrow">Scroll ↓</span>
+    </div>
+    <ol class="method__index">
+      {
+        steps.map((s, i) => (
+          <li>
+            <span>0{i + 1}</span>
+            {s.title}
+          </li>
+        ))
+      }
+    </ol>
+  </div>
+
+  <div class="method__stack">
+    {
+      steps.map((s, i) => (
+        <article class={`panel ${tones[i]} ${i % 2 ? 'is-right' : ''}`} data-panel>
+          <div class="panel__inner">
+            <div class="panel__num">
+              <strong>0{i + 1}</strong>
+              <span class="eyebrow">{s.kicker}</span>
+            </div>
+            <div class="panel__body">
+              <h3 class="panel__title">{s.title}</h3>
+              <p class="panel__text">{s.text}</p>
+              <span class="eyebrow panel__tags">{s.tags}</span>
+            </div>
+            <span class="panel__ghost" aria-hidden="true">
+              0{i + 1}
+            </span>
+          </div>
+        </article>
+      ))
+    }
+  </div>
+</section>
+
+<style>
+  .method {
+    background: var(--ink);
+    position: relative;
+    z-index: 3;
+  }
+  .method__intro {
+    padding: 16vh var(--gutter) 10vh;
+  }
+  .method__row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4vw;
+  }
+  .method__k {
+    color: var(--muted);
+  }
+  .method__lead {
+    max-width: 440px;
+    color: var(--muted);
+    font-size: 15px;
+    line-height: 1.7;
+  }
+  .method__title {
+    margin-top: 9vh;
+    font-family: var(--f-display);
+    font-weight: 800;
+    font-size: clamp(48px, 17vw, 280px);
+    line-height: 0.82;
+    letter-spacing: -0.05em;
+  }
+  .method__la {
+    font-size: 0.42em;
+    font-weight: 400;
+    color: var(--muted);
+    letter-spacing: 0;
+    line-height: 1;
+  }
+  .method__sub {
+    display: flex;
+    justify-content: space-between;
+    align-items: end;
+    margin-top: 4vh;
+    padding-bottom: 18px;
+    border-bottom: 1px solid var(--line);
+  }
+  .method__sub p {
+    font-size: clamp(20px, 2vw, 28px);
+    color: var(--muted);
+  }
+  .method__sub .eyebrow {
+    color: var(--muted-dark);
+  }
+  .method__index {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    list-style: none;
+    margin: 0;
+    padding: 18px 0 0;
+    font-family: var(--f-display);
+    font-weight: 700;
+    font-size: 15px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  .method__index span {
+    display: block;
+    font-family: var(--f-sans);
+    font-weight: 500;
+    font-size: 10px;
+    color: var(--muted-dark);
+    margin-bottom: 4px;
+  }
+
+  .panel {
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow: hidden;
+    border-top: 1px solid var(--line);
+  }
+  .p-ink {
+    background: var(--ink);
+  }
+  .p-ink2 {
+    background: var(--ink-3);
+  }
+  .p-paper {
+    background: var(--paper);
+    color: var(--ink);
+  }
+  .panel__inner {
+    position: relative;
+    height: 100%;
+    display: grid;
+    grid-template-columns: 160px 1fr;
+    padding: 90px var(--gutter) 60px;
+  }
+  .panel__num {
+    border-right: 1px solid currentColor;
+    border-color: color-mix(in srgb, currentColor 15%, transparent);
+    padding-right: 20px;
+  }
+  .panel__num strong {
+    display: block;
+    font-family: var(--f-display);
+    font-weight: 700;
+    font-size: 46px;
+    line-height: 1;
+    margin-bottom: 10px;
+  }
+  .panel__num .eyebrow {
+    opacity: 0.55;
+    font-size: 10px;
+  }
+  .panel__body {
+    align-self: center;
+    padding-left: 4vw;
+    max-width: 640px;
+  }
+  .panel__title {
+    font-family: var(--f-display);
+    font-weight: 800;
+    font-size: clamp(64px, 8.4vw, 136px);
+    line-height: 0.9;
+    letter-spacing: -0.045em;
+    text-transform: uppercase;
+    margin-bottom: 1.6rem;
+  }
+  .panel__text {
+    max-width: 380px;
+    font-size: 15px;
+    line-height: 1.7;
+    opacity: 0.7;
+  }
+  .panel__tags {
+    display: block;
+    margin-top: 2.2rem;
+    opacity: 0.35;
+    font-size: 10px;
+  }
+  .panel__ghost {
+    position: absolute;
+    right: var(--gutter);
+    bottom: -0.18em;
+    font-family: var(--f-display);
+    font-weight: 800;
+    font-size: clamp(180px, 26vw, 420px);
+    line-height: 1;
+    letter-spacing: -0.06em;
+    opacity: 0.06;
+    pointer-events: none;
+  }
+
+  /* even panels mirror the layout: number column on the right */
+  .is-right .panel__inner {
+    grid-template-columns: 1fr 160px;
+  }
+  .is-right .panel__num {
+    order: 2;
+    border-right: 0;
+    border-left: 1px solid color-mix(in srgb, currentColor 15%, transparent);
+    padding: 0 0 0 20px;
+    text-align: right;
+  }
+  .is-right .panel__ghost {
+    right: auto;
+    left: var(--gutter);
+  }
+
+  @media (max-width: 760px) {
+    .method__row,
+    .method__index {
+      grid-template-columns: 1fr 1fr;
+    }
+    .method__row {
+      grid-template-columns: 1fr;
+      gap: 1.2rem;
+    }
+    .panel__inner,
+    .is-right .panel__inner {
+      grid-template-columns: 1fr;
+      align-content: start;
+      gap: 12vh;
+    }
+    .panel__num,
+    .is-right .panel__num {
+      order: 0;
+      border: 0;
+      padding: 0;
+      text-align: left;
+    }
+    .panel__body {
+      padding-left: 0;
+    }
+  }
+</style>

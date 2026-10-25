@@ -1,0 +1,51 @@
+---
+interface Props {
+  label: string;
+  title: string;
+}
+const { label, title } = Astro.props;
+---
+
+<section class="plain">
+  <p class="serif plain__label">({label})</p>
+  <div class="plain__body" data-reveal>
+    <h2>{title}</h2>
+    <p><slot /></p>
+  </div>
+</section>
+
+<style>
+  .plain {
+    display: grid;
+    grid-template-columns: 1fr 2.2fr;
+    gap: 4vw;
+    padding: 18vh var(--gutter) 14vh;
+    background: var(--ink);
+    position: relative;
+    z-index: 4;
+  }
+  .plain__label {
+    color: var(--muted);
+  }
+  .plain__body {
+    max-width: 640px;
+  }
+  .plain__body h2 {
+    font-family: var(--f-display);
+    font-weight: 700;
+    font-size: clamp(26px, 2.4vw, 34px);
+    letter-spacing: -0.02em;
+    margin-bottom: 1.6rem;
+  }
+  .plain__body p {
+    color: #bdb9b0;
+    font-size: 15.5px;
+    line-height: 1.85;
+  }
+
+  @media (max-width: 900px) {
+    .plain {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

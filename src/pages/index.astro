@@ -1,0 +1,31 @@
+---
+import Base from '../layouts/Base.astro';
+import Preloader from '../components/Preloader.astro';
+import Header from '../components/Header.astro';
+import Hero from '../components/Hero.astro';
+import Studio from '../components/Studio.astro';
+import Projects from '../components/Projects.astro';
+import Method from '../components/Method.astro';
+import Services from '../components/Services.astro';
+import PlainWords from '../components/PlainWords.astro';
+import Contact from '../components/Contact.astro';
+import Footer from '../components/Footer.astro';
+---
+
+<Base>
+  <Preloader />
+  <Header />
+  <main>
+    <Hero />
+    <Studio />
+    <Projects />
+    <Method />
+    <Services />
+    <PlainWords label="In plain words" title="Sportana, in a few words">
+      TODO: one plain, factual paragraph about the business (who, what, where, for whom). Written for search engines and AI
+      answers as much as for people.
+    </PlainWords>
+    <Contact />
+  </main>
+  <Footer />
+</Base>

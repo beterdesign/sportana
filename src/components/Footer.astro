@@ -1,0 +1,132 @@
+---
+import { site, nav } from '../data/site.js';
+const year = new Date().getFullYear();
+---
+
+<footer class="footer">
+  <div class="footer__grid">
+    <div class="footer__brand">
+      <img src={site.logo} alt={site.name} height="80" />
+      <p>TODO: one-line positioning.<br />TODO: services in a line.</p>
+    </div>
+    <div>
+      <span class="eyebrow footer__h">Menu</span>
+      <ul>
+        {nav.map((n) => <li><a href={n.href}>{n.label}</a></li>)}
+        <li><a href="#contact">Contact</a></li>
+      </ul>
+    </div>
+    <div>
+      <span class="eyebrow footer__h">Social</span>
+      <ul>
+        <li><a href={site.linkedin} target="_blank" rel="noopener">LinkedIn</a></li>
+        <li><a href={site.calendly} target="_blank" rel="noopener">Book a call</a></li>
+      </ul>
+    </div>
+    <div>
+      <span class="eyebrow footer__h">Contact</span>
+      <ul>
+        <li><a href={`mailto:${site.email}`}>{site.email}</a></li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="footer__bar">
+    <span>© {year} {site.name}</span>
+    <nav aria-label="Legal">
+      <a href="/privacy">Privacy policy</a>
+      <a href="/faq">FAQ</a>
+    </nav>
+    <span>All rights reserved</span>
+  </div>
+
+  <div class="footer__mark" aria-hidden="true" data-footer-mark>
+    {site.name}
+  </div>
+</footer>
+
+<style>
+  .footer {
+    position: relative;
+    z-index: 4;
+    background: #0a0a09;
+    padding: 12vh var(--gutter) 0;
+    overflow: hidden;
+    border-top: 1px solid var(--line);
+  }
+  .footer__grid {
+    display: grid;
+    grid-template-columns: 1.5fr 1fr 1fr 1fr;
+    gap: 2rem;
+    padding-bottom: 8vh;
+  }
+  .footer__brand img {
+    height: 80px;
+    width: auto;
+    margin-bottom: 18px;
+  }
+  .footer__brand p,
+  .footer li {
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.7;
+  }
+  .footer__h {
+    display: block;
+    color: var(--muted-dark);
+    font-size: 10px;
+    margin-bottom: 18px;
+  }
+  .footer ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 6px;
+  }
+  .footer a {
+    transition: color 0.3s;
+  }
+  .footer a:hover {
+    color: var(--cream);
+  }
+  .footer__bar {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+    padding: 22px 0;
+    border-top: 1px solid var(--line);
+    font-size: 11px;
+    color: var(--muted-dark);
+  }
+  .footer__bar nav {
+    display: flex;
+    gap: 2rem;
+  }
+  .footer__mark {
+    font-family: var(--f-display);
+    font-weight: 800;
+    font-size: 15.6vw;
+    line-height: 1;
+    letter-spacing: -0.055em;
+    text-align: center;
+    color: var(--cream);
+    margin-top: 4vh;
+    padding-bottom: 1vw;
+    white-space: nowrap;
+  }
+  .footer__mark em {
+    font-weight: 400;
+    letter-spacing: -0.03em;
+  }
+
+  @media (max-width: 760px) {
+    .footer__grid {
+      grid-template-columns: 1fr 1fr;
+    }
+    .footer__brand {
+      grid-column: 1 / -1;
+    }
+  }
+</style>

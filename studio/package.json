@@ -1,0 +1,20 @@
+{
+  "name": "sportana-studio",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "sanity dev",
+    "build": "sanity build",
+    "deploy": "sanity deploy",
+    "seed": "sanity exec scripts/seed-content.mjs --with-user-token"
+  },
+  "dependencies": {
+    "@sanity/client": "^8.9.0",
+    "@sanity/vision": "^6.20.0",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "sanity": "^6.20.0",
+    "styled-components": "^6.6.0"
+  }
+}

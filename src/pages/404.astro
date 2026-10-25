@@ -1,0 +1,25 @@
+---
+import Base from '../layouts/Base.astro';
+import Header from '../components/Header.astro';
+import PageHero from '../components/PageHero.astro';
+import Footer from '../components/Footer.astro';
+---
+
+<Base title="Page not found | Sportana" description="TODO: page description">
+  <Header />
+  <main>
+    <PageHero label="Error 404" big="LOST" italic="in the layout." meta="Sportana · page not found">
+      This page does not exist, or it moved when the site was rebuilt. <a href="/" class="back">Back to the homepage ↗</a>
+    </PageHero>
+  </main>
+  <Footer />
+</Base>
+
+<style>
+  .back {
+    display: inline-block;
+    margin-top: 0.8rem;
+    color: var(--cream);
+    border-bottom: 1px solid currentColor;
+  }
+</style>

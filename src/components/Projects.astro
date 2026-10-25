@@ -1,0 +1,309 @@
+---
+import { getFeaturedProjects } from '../lib/sanity.js';
+const projects = await getFeaturedProjects();
+// staggered vertical offsets + tilt give the scattered "pinned on a wall" look
+const layout = [
+  { y: '0vh', r: -1.5 },
+  { y: '6vh', r: 1.2 },
+  { y: '11vh', r: -0.8 },
+  { y: '3vh', r: 1.6 },
+  { y: '8vh', r: -1.2 },
+];
+---
+
+<section class="work" id="work" data-work>
+  <div class="work__pin" data-work-pin>
+    <div class="work__top">
+      <span class="eyebrow">02&nbsp;&nbsp; Projects in images</span>
+      <span class="eyebrow"><span data-work-index>01</span> / 0{projects.length}</span>
+    </div>
+
+    <div class="work__head">
+      <h2 class="work__title">
+        <span class="mask"><span data-reveal-line>SEE IT,</span></span>
+        <span class="mask serif work__italic"><span data-reveal-line>before you read.</span></span>
+      </h2>
+      <div class="work__lede">
+        <p>TODO: one line about the selected work.</p>
+        <span class="work__hint" aria-hidden="true">↘</span>
+      </div>
+    </div>
+
+    <div class="work__viewport" data-qa-ignore>
+      <ol class="work__track" data-work-track>
+        {
+          projects.map((p, i) => (
+            <li class="card" style={`--y:${layout[i].y};--r:${layout[i].r}deg;--tone:${p.tone}`}>
+              <a href={p.href} class="card__link">
+                <div class="card__media">
+                  <img src={p.image} alt={`${p.name} website`} loading="lazy" />
+                  <span class="card__cta">View project ↗</span>
+                </div>
+                <div class="card__meta">
+                  <span class="card__num">0{i + 1}</span>
+                  <h3 class="card__name">{p.name}</h3>
+                  <span class="card__tag">{p.tag}</span>
+                </div>
+              </a>
+            </li>
+          ))
+        }
+        <li class="card card--end" style="--y:4vh;--r:0deg">
+          <a href="/work" class="card__end">
+            <span class="eyebrow">Portfolio</span>
+            <strong>View<br /><em class="serif">all work</em></strong>
+            <span class="card__endArrow">↗</span>
+          </a>
+        </li>
+      </ol>
+    </div>
+
+    <div class="work__foot">
+      <span class="eyebrow">Selected work · 0{projects.length} projects</span>
+      <a href="/work" class="work__all">
+        View all
+      </a>
+    </div>
+  </div>
+</section>
+
+<style>
+  .work {
+    background: var(--paper);
+    color: var(--ink);
+    border-radius: 28px 28px 0 0;
+    position: relative;
+    z-index: 2;
+  }
+  .work__pin {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    padding: 84px var(--gutter) 28px;
+    overflow: hidden;
+  }
+  .work__top {
+    display: flex;
+    justify-content: space-between;
+    color: var(--muted-dark);
+  }
+  .work__head {
+    display: grid;
+    grid-template-columns: 1.4fr 1fr;
+    align-items: end;
+    gap: 2rem;
+    margin-top: 1vh;
+    padding-left: 11vw;
+  }
+  .work__title {
+    font-family: var(--f-display);
+    font-weight: 800;
+    font-size: clamp(56px, 8.4vw, 136px);
+    line-height: 0.88;
+    letter-spacing: -0.045em;
+  }
+  .work__italic {
+    font-size: 0.62em;
+    letter-spacing: -0.01em;
+    line-height: 1.1;
+    padding-left: 1.4em;
+    font-weight: 400;
+    white-space: nowrap;
+  }
+  .work__lede {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 2rem;
+    border-top: 1px solid var(--line-dark);
+    padding-top: 14px;
+    margin-bottom: 1.4em;
+    font-size: 14px;
+    color: var(--muted-dark);
+  }
+  .work__lede p {
+    max-width: 260px;
+  }
+  .work__hint {
+    flex: none;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    border: 1px solid var(--line-dark);
+    display: grid;
+    place-items: center;
+    font-size: 13px;
+  }
+
+  .work__viewport {
+    flex: 1;
+    display: flex;
+    align-items: flex-start;
+    margin-top: 3vh;
+  }
+  .work__track {
+    display: flex;
+    gap: 3.4vw;
+    list-style: none;
+    margin: 0;
+    padding: 0 0 0 9vw;
+    will-change: transform;
+  }
+
+  .card {
+    flex: none;
+    width: clamp(240px, 20vw, 330px);
+    transform: translateY(var(--y)) rotate(var(--r));
+  }
+  .card__media {
+    position: relative;
+    aspect-ratio: 4 / 3.1;
+    overflow: hidden;
+    background: var(--tone);
+    box-shadow:
+      0 1px 0 rgba(0, 0, 0, 0.04),
+      0 24px 50px -24px rgba(14, 14, 13, 0.45);
+  }
+  .card__media img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 1.2s var(--ease);
+  }
+  .card__cta {
+    position: absolute;
+    inset: auto 12px 12px auto;
+    padding: 8px 14px;
+    border-radius: 999px;
+    background: var(--cream);
+    font-size: 10.5px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    opacity: 0;
+    transform: translateY(8px);
+    transition: 0.5s var(--ease);
+  }
+  .card__link:hover img {
+    transform: scale(1.06);
+  }
+  .card__link:hover .card__cta {
+    opacity: 1;
+    transform: none;
+  }
+  .card__meta {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    column-gap: 14px;
+    align-items: baseline;
+    padding-top: 16px;
+    border-top: 1px solid var(--line-dark);
+    margin-top: 14px;
+  }
+  .card__num {
+    font-size: 10px;
+    color: var(--muted-dark);
+  }
+  .card__name {
+    font-family: var(--f-display);
+    font-weight: 800;
+    font-size: clamp(20px, 1.9vw, 28px);
+    letter-spacing: -0.02em;
+    text-transform: uppercase;
+    line-height: 1.05;
+  }
+  .card__tag {
+    grid-column: 2;
+    font-size: 11px;
+    color: var(--muted-dark);
+    margin-top: 6px;
+  }
+
+  .card--end {
+    padding-right: 9vw;
+    width: auto;
+  }
+  .card__end {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    width: clamp(240px, 20vw, 330px);
+    aspect-ratio: 4 / 3.1;
+    padding: 22px;
+    border: 1px solid var(--line-dark);
+    color: var(--muted-dark);
+    transition: background 0.5s var(--ease), color 0.5s var(--ease);
+  }
+  .card__end strong {
+    font-family: var(--f-display);
+    font-weight: 800;
+    font-size: clamp(36px, 3vw, 50px);
+    line-height: 0.95;
+    letter-spacing: -0.035em;
+    color: var(--ink);
+    transition: color 0.5s var(--ease);
+  }
+  .card__end em {
+    font-weight: 400;
+    letter-spacing: 0;
+  }
+  .card__endArrow {
+    align-self: flex-end;
+    font-size: 22px;
+  }
+  .card__end:hover {
+    background: var(--ink);
+    color: var(--cream);
+  }
+  .card__end:hover strong {
+    color: var(--cream);
+  }
+
+  .work__foot {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 1px solid var(--line-dark);
+    padding-top: 18px;
+    margin-top: 3vh;
+    color: var(--muted-dark);
+  }
+  .work__all {
+    font-family: var(--f-display);
+    font-weight: 800;
+    font-size: 20px;
+    letter-spacing: -0.01em;
+    text-transform: uppercase;
+    color: var(--ink);
+    border-bottom: 2px solid currentColor;
+    padding-bottom: 4px;
+  }
+  .work__all sup {
+    font-family: var(--f-sans);
+    font-weight: 500;
+    font-size: 11px;
+  }
+
+  @media (max-width: 900px) {
+    .work__pin {
+      height: auto;
+    }
+    .work__head {
+      grid-template-columns: 1fr;
+      padding-left: 0;
+    }
+    .work__track {
+      flex-direction: column;
+      padding: 0;
+      gap: 3rem;
+    }
+    .card {
+      width: 100%;
+      transform: rotate(var(--r));
+    }
+    .work__foot {
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+  }
+</style>

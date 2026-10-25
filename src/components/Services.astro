@@ -1,0 +1,111 @@
+---
+import { services } from '../data/site.js';
+---
+
+<section class="services" id="services">
+  <div class="services__head">
+    <span class="eyebrow">04&nbsp;&nbsp; Services</span>
+    <a href="/services" class="eyebrow services__more">All services ↗</a>
+  </div>
+  <ul class="services__list">
+    {
+      services.map((s) => (
+        <li class="svc" data-svc>
+          <h3 class="svc__title">{s.title}</h3>
+          <div class="svc__detail">
+            <p>{s.text}</p>
+            <span class="svc__price">{s.price}</span>
+          </div>
+        </li>
+      ))
+    }
+  </ul>
+</section>
+
+<style>
+  .services {
+    position: relative;
+    z-index: 4;
+    background: var(--paper);
+    color: var(--ink);
+    border-radius: 28px 28px 0 0;
+    margin-top: -28px;
+    padding: 14vh var(--gutter) 18vh;
+  }
+  .services__head {
+    display: flex;
+    justify-content: space-between;
+    color: var(--muted-dark);
+    padding-bottom: 14px;
+    border-bottom: 1px solid var(--line-dark);
+  }
+  .services__list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  .svc {
+    display: grid;
+    grid-template-columns: 1.6fr 1fr;
+    align-items: center;
+    gap: 2rem;
+    padding: 3.2vh 0;
+    border-bottom: 1px solid var(--line-dark);
+    color: #c4c0b7;
+    transition: color 0.6s var(--ease);
+  }
+  .svc__title {
+    font-family: var(--f-display);
+    font-weight: 700;
+    font-size: clamp(40px, 6.6vw, 112px);
+    white-space: nowrap;
+    line-height: 1;
+    letter-spacing: -0.035em;
+    transition: transform 0.7s var(--ease);
+  }
+  .svc__detail {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 2rem;
+    font-size: 13.5px;
+    line-height: 1.6;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: 0.6s var(--ease);
+  }
+  .svc__detail p {
+    max-width: 280px;
+    color: var(--muted-dark);
+  }
+  .svc__price {
+    flex: none;
+    font-family: var(--f-serif);
+    font-style: italic;
+    font-size: 18px;
+    color: var(--ink);
+  }
+  .svc.is-active,
+  .svc:hover {
+    color: var(--ink);
+  }
+  .svc.is-active .svc__title,
+  .svc:hover .svc__title {
+    transform: translateX(1.2vw);
+  }
+  .svc.is-active .svc__detail,
+  .svc:hover .svc__detail {
+    opacity: 1;
+    transform: none;
+  }
+
+  @media (max-width: 760px) {
+    .svc {
+      grid-template-columns: 1fr;
+      gap: 0.8rem;
+    }
+    .svc__title {
+      white-space: normal;
+    }
+  }
+</style>

@@ -1,0 +1,127 @@
+---
+import Base from '../layouts/Base.astro';
+import Header from '../components/Header.astro';
+import PageHero from '../components/PageHero.astro';
+import Statement from '../components/Statement.astro';
+import Rows from '../components/Rows.astro';
+import PlainWords from '../components/PlainWords.astro';
+import Faq from '../components/Faq.astro';
+import Contact from '../components/Contact.astro';
+import Footer from '../components/Footer.astro';
+import { principles, studioFaq, clients } from '../data/site.js';
+
+const stats = [
+  { figure: 'TODO', text: 'TODO' },
+  { figure: '01', text: 'person from the first call to launch' },
+  { figure: '0', text: 'middlemen between the design, the code and you' },
+];
+---
+
+<Base
+  title="About | Sportana"
+  description="TODO: page description"
+>
+  <Header />
+  <main>
+    <PageHero label="Behind the studio" big="STUDIO" italic="of one." meta="Sportana · TODO">
+      TODO: who is behind the business, in two sentences.
+    </PageHero>
+
+    <Statement
+      label="Conviction"
+      text="TODO: conviction statement."
+    />
+
+    <Rows label="Working principles" items={principles} />
+
+    <PlainWords label="TODO" title="TODO: story section">
+      TODO: the story behind the business.
+    </PlainWords>
+
+    <section class="stats">
+      <span class="eyebrow stats__label">What a solo studio guarantees</span>
+      <ul class="stats__list">
+        {
+          stats.map((s) => (
+            <li data-reveal>
+              <strong>{s.figure}</strong>
+              <span>{s.text}</span>
+            </li>
+          ))
+        }
+      </ul>
+      <div class="stats__clients" data-reveal>
+        <span class="eyebrow">Trusted by</span>
+        <p>{clients.join(' · ')}</p>
+      </div>
+    </section>
+
+    <Faq
+      title="Questions about Sportana"
+      intro="TODO"
+      items={studioFaq}
+    />
+    <Contact title="Let's talk about your project." />
+  </main>
+  <Footer />
+</Base>
+
+<style>
+  .stats {
+    padding: 14vh var(--gutter);
+    border-top: 1px solid var(--line);
+    background: var(--ink);
+  }
+  .stats__label {
+    display: block;
+    color: var(--muted-dark);
+    margin-bottom: 8vh;
+  }
+  .stats__list {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2rem;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  .stats__list li {
+    border-top: 1px solid var(--line);
+    padding-top: 24px;
+  }
+  .stats__list strong {
+    display: block;
+    font-family: var(--f-display);
+    font-weight: 800;
+    font-size: clamp(80px, 11vw, 180px);
+    line-height: 0.9;
+    letter-spacing: -0.05em;
+    margin-bottom: 1rem;
+  }
+  .stats__list span {
+    display: block;
+    max-width: 220px;
+    color: var(--muted);
+    font-size: 14px;
+  }
+  .stats__clients {
+    display: flex;
+    gap: 2rem;
+    align-items: baseline;
+    flex-wrap: wrap;
+    margin-top: 12vh;
+    color: var(--muted-dark);
+  }
+  .stats__clients p {
+    font-family: var(--f-display);
+    font-weight: 700;
+    font-size: 18px;
+    color: #6f6c65;
+  }
+
+  @media (max-width: 760px) {
+    .stats__list {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

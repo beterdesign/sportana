@@ -1,0 +1,126 @@
+---
+import { clients } from '../data/site.js';
+
+const statement =
+  'TODO: the big statement that lights up word by word as you scroll. Two or three sentences on what the business believes.';
+---
+
+<section class="studio" id="studio">
+  <div class="studio__side">
+    <p class="serif studio__label">(The studio)</p>
+    <div class="studio__stat" data-reveal>
+      <span class="serif studio__figure">TODO</span>
+      <p>TODO: proof point</p>
+    </div>
+    <div class="studio__stat" data-reveal>
+      <span class="serif studio__figure">TODO</span>
+      <p>TODO: proof point</p>
+    </div>
+  </div>
+
+  <div class="studio__main">
+    <p class="studio__statement" data-words>
+      {statement.split(' ').map((w) => <span class="w">{w} </span>)}
+    </p>
+    <p class="studio__small" data-reveal>
+      TODO: a short paragraph that backs up the statement.
+    </p>
+    <div class="studio__clients" data-reveal>
+      <span class="eyebrow">Trusted by</span>
+      <ul>
+        {clients.map((c) => <li>{c}</li>)}
+      </ul>
+    </div>
+  </div>
+</section>
+
+<style>
+  .studio {
+    display: grid;
+    grid-template-columns: 1fr 2.2fr;
+    gap: 4vw;
+    padding: 18vh var(--gutter) 20vh;
+    background: var(--ink);
+  }
+  .studio__label {
+    color: var(--muted);
+    font-size: 15px;
+    margin-bottom: 9vh;
+  }
+  .studio__stat {
+    margin-bottom: 7vh;
+    max-width: 200px;
+  }
+  .studio__figure {
+    display: block;
+    font-size: clamp(42px, 4.4vw, 64px);
+    line-height: 1;
+    color: #4a4844;
+    margin-bottom: 14px;
+  }
+  .studio__stat p {
+    font-size: 12px;
+    line-height: 1.6;
+    color: var(--muted-dark);
+  }
+
+  .studio__statement {
+    font-family: var(--f-display);
+    font-weight: 500;
+    font-size: clamp(30px, 3.5vw, 54px);
+    line-height: 1.14;
+    letter-spacing: -0.02em;
+    max-width: 17em;
+  }
+  .studio__statement :global(.w) {
+    opacity: 0.16;
+  }
+
+  .studio__small {
+    max-width: 330px;
+    margin: 9vh 0 0 9vw;
+    color: var(--muted);
+    font-size: 14px;
+    line-height: 1.75;
+  }
+
+  .studio__clients {
+    margin: 12vh 0 0 9vw;
+    display: flex;
+    gap: 2rem;
+    align-items: baseline;
+    flex-wrap: wrap;
+    color: var(--muted-dark);
+  }
+  .studio__clients ul {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem 1.6rem;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    font-family: var(--f-display);
+    font-weight: 700;
+    font-size: 18px;
+    color: #6f6c65;
+  }
+
+  @media (max-width: 900px) {
+    .studio {
+      grid-template-columns: 1fr;
+    }
+    .studio__side {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+    .studio__label {
+      grid-column: 1 / -1;
+      margin-bottom: 2rem;
+    }
+    .studio__small,
+    .studio__clients {
+      margin-left: 0;
+    }
+  }
+</style>

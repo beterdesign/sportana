@@ -1,0 +1,46 @@
+---
+import '../styles/global.css';
+import { site } from '../data/site.js';
+import ProjectModal from '../components/ProjectModal.astro';
+
+interface Props {
+  title?: string;
+  description?: string;
+  image?: string;
+}
+
+// image: absolute URL (Sanity) or a path in public/; the default /og.jpg (1200×630) is made per client
+const { title = site.title, description = site.description, image = '/og.jpg' } = Astro.props;
+const ogImage = new URL(image, Astro.site).href;
+// build.format 'file' renders /work as work.html; the public URL has no extension
+const canonicalPath = Astro.url.pathname.replace(/\.html$/, '').replace(/\/index$/, '/');
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:type" content="website" />
+    <meta property="og:image" content={ogImage} />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link rel="canonical" href={new URL(canonicalPath, Astro.site)} />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="preconnect" href="https://api.fontshare.com" />
+    <link
+      rel="stylesheet"
+      href="https://api.fontshare.com/v2/css?f[]=general-sans@400,500,600&f[]=cabinet-grotesk@500,700,800&f[]=zodiak@400,401&display=swap"
+    />
+  </head>
+  <body class="is-loading">
+    <slot />
+    <ProjectModal />
+    <script>
+      import '../scripts/main.js';
+    </script>
+  </body>
+</html>

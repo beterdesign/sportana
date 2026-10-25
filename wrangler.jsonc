@@ -1,0 +1,12 @@
+// Cloudflare Workers static-assets deploy: serves the built Astro site from dist/.
+// Static asset requests are free on the Workers free plan.
+{
+  "name": "sportana",
+  "compatibility_date": "2026-10-01",
+  "assets": {
+    "directory": "./dist",
+    // /work is served from work.html; unknown URLs get the custom 404 page
+    "html_handling": "auto-trailing-slash",
+    "not_found_handling": "404-page"
+  }
+}

@@ -1,0 +1,265 @@
+---
+import Base from '../../layouts/Base.astro';
+import Header from '../../components/Header.astro';
+import Contact from '../../components/Contact.astro';
+import Footer from '../../components/Footer.astro';
+import { journalTopics, site } from '../../data/site.js';
+import { getPostPages, img, srcset, outline, readingMinutes, richText } from '../../lib/sanity.js';
+
+export async function getStaticPaths() {
+  const posts = await getPostPages();
+  return posts.map((post) => {
+    // up to three more entries, same topic first
+    const others = posts.filter((p) => p.slug !== post.slug);
+    const related = [...others.filter((p) => p.topic === post.topic), ...others.filter((p) => p.topic !== post.topic)].slice(0, 3);
+    return { params: { slug: post.slug }, props: { post, related } };
+  });
+}
+
+const { post: p, related } = Astro.props;
+const topic = Object.fromEntries(journalTopics.map((t) => [t.id, t.label]))[p.topic];
+const date = new Date(p.publishedAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+const toc = outline(p.body);
+
+const schema = {
+  '@context': 'https://schema.org',
+  '@type': 'BlogPosting',
+  headline: p.title,
+  description: p.excerpt,
+  datePublished: p.publishedAt,
+  image: p.image,
+  author: { '@type': 'Organization', name: site.name, url: 'https://sportana.rs' },
+};
+---
+
+<Base title={`${p.title} | Sportana Journal`} description={p.excerpt}>
+  <Header />
+  <main>
+    <article>
+      <header class="ah">
+        <div class="ah__top" data-hero-fade>
+          <a href="/journal" class="serif ah__back">(Journal)</a>
+          <span class="eyebrow ah__meta">{topic} · {date} · {readingMinutes(p.body)} min read</span>
+        </div>
+        <h1 class="ah__title">
+          <span class="mask"><span data-hero-line>{p.title}</span></span>
+        </h1>
+        {p.excerpt && <p class="ah__excerpt" data-hero-fade>{p.excerpt}</p>}
+      </header>
+
+      {
+        p.coverImage && (
+          <figure class="cover">
+            <img src={img(p.coverImage, 2400)} srcset={srcset(p.coverImage)} sizes="100vw" alt={p.coverImage.alt || ''} data-parallax />
+          </figure>
+        )
+      }
+
+      <div class="layout">
+        <aside class="toc">
+          {
+            toc.length > 1 && (
+              <nav aria-label="Contents">
+                <span class="serif toc__label">(Contents)</span>
+                <ol>
+                  {toc.map((h, i) => (
+                    <li>
+                      <a href={`#${h.id}`} data-toc-link>
+                        <span>{String(i + 1).padStart(2, '0')}</span>
+                        {h.text}
+                      </a>
+                    </li>
+                  ))}
+                </ol>
+              </nav>
+            )
+          }
+        </aside>
+        <div class="prose" set:html={richText(p.body)} />
+      </div>
+    </article>
+
+    <section class="more">
+      <div class="more__head">
+        <span class="eyebrow">Keep reading</span>
+        <a href="/journal" class="eyebrow more__all">All entries ↗</a>
+      </div>
+      <ul class="more__list">
+        {
+          related.map((r) => (
+            <li>
+              <a href={r.href} class="more__card">
+                <div class="more__img">
+                  <img src={r.image} alt="" loading="lazy" />
+                </div>
+                <span class="eyebrow">{Object.fromEntries(journalTopics.map((t) => [t.id, t.label]))[r.topic]}</span>
+                <h2>{r.title}</h2>
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </section>
+
+    <Contact title="Want to be the next story?" />
+  </main>
+  <Footer />
+  <script type="application/ld+json" set:html={JSON.stringify(schema)} />
+</Base>
+
+<style>
+  .ah {
+    padding: 140px var(--gutter) 9vh;
+  }
+  .ah__top {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 1rem;
+    flex-wrap: wrap;
+    padding-bottom: 18px;
+    border-bottom: 1px solid var(--line);
+  }
+  .ah__back {
+    color: var(--muted);
+  }
+  .ah__back:hover {
+    color: var(--cream);
+  }
+  .ah__meta {
+    color: var(--muted-dark);
+  }
+  .ah__title {
+    max-width: 15em;
+    margin: 9vh 0 4vh;
+    font-family: var(--f-display);
+    font-weight: 700;
+    font-size: clamp(40px, 5.6vw, 92px);
+    line-height: 1;
+    letter-spacing: -0.035em;
+  }
+  .ah__excerpt {
+    max-width: 560px;
+    margin-left: auto;
+    color: #a9a69e;
+    font-size: 17px;
+    line-height: 1.7;
+  }
+
+  .cover {
+    margin: 0;
+    height: 80vh;
+    overflow: hidden;
+    background: var(--ink-3);
+  }
+  .cover img {
+    width: 100%;
+    height: 118%;
+    object-fit: cover;
+  }
+
+  .layout {
+    display: grid;
+    grid-template-columns: 1fr 2.2fr;
+    gap: 4vw;
+    padding: 14vh var(--gutter) 12vh;
+  }
+  .toc nav {
+    position: sticky;
+    top: 110px;
+  }
+  .toc__label {
+    display: block;
+    color: var(--muted);
+    margin-bottom: 1.4rem;
+  }
+  .toc ol {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    border-top: 1px solid var(--line);
+  }
+  .toc a {
+    display: grid;
+    grid-template-columns: 28px 1fr;
+    gap: 8px;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--line);
+    font-size: 13px;
+    line-height: 1.4;
+    color: var(--muted-dark);
+    transition: color 0.3s;
+  }
+  .toc a span {
+    font-size: 10px;
+    padding-top: 2px;
+  }
+  .toc a:hover,
+  .toc a.is-active {
+    color: var(--cream);
+  }
+
+  .more {
+    padding: 12vh var(--gutter) 10vh;
+    border-top: 1px solid var(--line);
+  }
+  .more__head {
+    display: flex;
+    justify-content: space-between;
+    color: var(--muted-dark);
+    margin-bottom: 5vh;
+  }
+  .more__all:hover {
+    color: var(--cream);
+  }
+  .more__list {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--gutter);
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  .more__img {
+    aspect-ratio: 4 / 3;
+    overflow: hidden;
+    background: var(--ink-3);
+    margin-bottom: 18px;
+  }
+  .more__img img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 1.2s var(--ease);
+  }
+  .more__card:hover img {
+    transform: scale(1.05);
+  }
+  .more__card .eyebrow {
+    color: var(--muted-dark);
+    font-size: 10px;
+  }
+  .more__card h2 {
+    margin-top: 10px;
+    font-family: var(--f-display);
+    font-weight: 700;
+    font-size: clamp(19px, 1.6vw, 24px);
+    line-height: 1.2;
+    letter-spacing: -0.01em;
+  }
+
+  @media (max-width: 900px) {
+    .layout {
+      grid-template-columns: 1fr;
+    }
+    .toc {
+      display: none;
+    }
+    .cover {
+      height: 50vh;
+    }
+    .more__list {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

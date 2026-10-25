@@ -1,0 +1,47 @@
+---
+// Large statement that lights up word by word on scroll.
+interface Props {
+  label: string;
+  text: string;
+}
+const { label, text } = Astro.props;
+---
+
+<section class="st">
+  <p class="serif st__label">({label})</p>
+  <p class="st__text" data-words>
+    {text.split(' ').map((w) => <span class="w">{w} </span>)}
+  </p>
+</section>
+
+<style>
+  .st {
+    display: grid;
+    grid-template-columns: 1fr 2.2fr;
+    gap: 4vw;
+    padding: 18vh var(--gutter);
+    border-top: 1px solid var(--line);
+    background: var(--ink);
+  }
+  .st__label {
+    color: var(--muted);
+  }
+  .st__text {
+    font-family: var(--f-display);
+    font-weight: 500;
+    font-size: clamp(30px, 3.6vw, 56px);
+    line-height: 1.14;
+    letter-spacing: -0.02em;
+    max-width: 16em;
+  }
+  .st__text :global(.w) {
+    opacity: 0.16;
+  }
+
+  @media (max-width: 900px) {
+    .st {
+      grid-template-columns: 1fr;
+      gap: 2rem;
+    }
+  }
+</style>
