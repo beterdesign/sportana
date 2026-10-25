@@ -1,0 +1,122 @@
+---
+// Cart drawer. Lines are rendered by scripts/store.js from localStorage + /products.json (always current prices).
+import Icon from './Icon.astro';
+---
+
+<div class="cart" id="cart" data-cart hidden data-lenis-prevent>
+  <div class="cart__backdrop" data-cart-close></div>
+  <aside class="cart__panel" role="dialog" aria-modal="true" aria-labelledby="cart-title">
+    <div class="cart__top">
+      <h2 id="cart-title" class="h3">Korpa <span data-cart-count-label></span></h2>
+      <button class="cart__close" data-cart-close aria-label="Zatvori korpu"><Icon name="close" size={24} /></button>
+    </div>
+    <div class="cart__body">
+      <ul class="cart__lines" data-cart-lines></ul>
+      <div class="cart__empty" data-cart-empty>
+        <p class="h3">Korpa je prazna</p>
+        <p class="muted">Pretražite proizvode ili krenite od kategorija.</p>
+        <div class="cart__empty-actions">
+          <button class="btn" data-search-open data-cart-close>Pretraži</button>
+          <a href="/prodavnica" class="btn btn--line">Prodavnica</a>
+        </div>
+      </div>
+    </div>
+    <div class="cart__foot" data-cart-foot hidden>
+      <div class="cart__sum">
+        <span>Ukupno</span>
+        <strong data-cart-total>0 RSD</strong>
+      </div>
+      <p class="cart__note muted">Cena isporuke se obračunava pri poručivanju.</p>
+      <a href="/korpa" class="btn btn--volt cart__go">Nastavi na korpu <Icon name="arrow" size={18} /></a>
+    </div>
+  </aside>
+</div>
+
+<style>
+  .cart {
+    position: fixed;
+    inset: 0;
+    z-index: 105;
+  }
+  .cart__backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(11, 11, 10, 0.4);
+    animation: c-fade 0.3s ease both;
+  }
+  .cart__panel {
+    position: absolute;
+    inset: 0 0 0 auto;
+    width: min(460px, 100%);
+    background: var(--paper);
+    display: flex;
+    flex-direction: column;
+    animation: c-in 0.5s var(--ease) both;
+  }
+  @keyframes c-in {
+    from {
+      transform: translateX(40px);
+      opacity: 0;
+    }
+  }
+  @keyframes c-fade {
+    from {
+      opacity: 0;
+    }
+  }
+  .cart__top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px var(--gutter) 14px clamp(20px, 2.4vw, 32px);
+    border-bottom: 1px solid var(--line);
+  }
+  .cart__top span {
+    color: var(--muted);
+  }
+  .cart__close {
+    width: 44px;
+    height: 44px;
+    display: grid;
+    place-items: center;
+  }
+  .cart__body {
+    flex: 1;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: 8px clamp(20px, 2.4vw, 32px);
+  }
+  .cart__empty {
+    padding: 40px 0;
+  }
+  .cart__empty .muted {
+    margin-top: 8px;
+  }
+  .cart__empty-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 22px;
+    flex-wrap: wrap;
+  }
+  .cart__foot {
+    padding: 18px clamp(20px, 2.4vw, 32px) 22px;
+    border-top: 1px solid var(--line);
+    background: var(--white);
+  }
+  .cart__sum {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    font-size: 18px;
+  }
+  .cart__sum strong {
+    font-size: 22px;
+  }
+  .cart__note {
+    font-size: 13px;
+    margin: 6px 0 16px;
+  }
+  .cart__go {
+    width: 100%;
+  }
+</style>

@@ -1,0 +1,72 @@
+---
+// Wishlist: every product card is in the page (hidden), the script shows the saved ones.
+import Base from '../layouts/Base.astro';
+import PageHead from '../components/PageHead.astro';
+import ProductCard from '../components/ProductCard.astro';
+import Icon from '../components/Icon.astro';
+import { getProducts } from '../lib/sanity.js';
+
+const products = await getProducts();
+---
+
+<Base title="Sačuvano | Sportana" description="Proizvodi koje ste sačuvali u Sportani." noindex>
+  <PageHead title="Sačuvano" crumbs={[{ label: 'Sačuvano' }]}>
+    <p class="muted" data-wish-note>Kliknite na srce na proizvodu da ga sačuvate za kasnije.</p>
+  </PageHead>
+  <section class="saved wrap">
+    <div class="saved__grid" data-saved>
+      {products.map((p, i) => <div data-saved-item={p._id.replace('product-', '')} hidden><ProductCard p={p} index={i} /></div>)}
+    </div>
+    <div class="saved__empty" data-saved-empty hidden>
+      <p class="h3">Još ništa niste sačuvali</p>
+      <div class="saved__actions">
+        <a href="/prodavnica" class="btn">Prodavnica <Icon name="arrow" size={18} /></a>
+        <button class="btn btn--line" data-search-open>Pretraga</button>
+      </div>
+    </div>
+  </section>
+</Base>
+
+<script>
+  import { wish } from '../scripts/store.js';
+
+  const grid = document.querySelector<HTMLElement>('[data-saved]')!;
+  const items = [...grid.querySelectorAll<HTMLElement>('[data-saved-item]')];
+  function render() {
+    const ids = wish.ids();
+    items.forEach((el) => (el.hidden = !ids.includes(el.dataset.savedItem!)));
+    // newest saved first
+    ids.forEach((id) => {
+      const el = items.find((x) => x.dataset.savedItem === id);
+      if (el) grid.append(el);
+    });
+    document.querySelector<HTMLElement>('[data-saved-empty]')!.hidden = ids.length > 0;
+    const note = document.querySelector('[data-wish-note]');
+    if (note && ids.length) note.textContent = `${ids.length} ${ids.length % 10 === 1 && ids.length % 100 !== 11 ? 'proizvod' : 'proizvoda'}. Sačuvano je samo u ovom pregledaču.`;
+  }
+  document.addEventListener('store:change', render);
+  render();
+</script>
+
+<style>
+  .saved__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 230px), 1fr));
+    gap: clamp(24px, 2.4vw, 40px) clamp(12px, 1.4vw, 20px);
+  }
+  .saved__empty {
+    display: grid;
+    gap: 16px;
+    justify-items: start;
+  }
+  .saved__actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  @media (max-width: 600px) {
+    .saved__grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+</style>

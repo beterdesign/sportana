@@ -1,0 +1,128 @@
+---
+// Page title block with breadcrumbs (and BreadcrumbList schema). Optional photo band for category pages.
+import { img, srcset } from '../lib/sanity.js';
+
+interface Props {
+  title: string;
+  eyebrow?: string;
+  text?: string;
+  crumbs?: { label: string; href?: string }[];
+  image?: any;
+}
+const { title, eyebrow, text, crumbs = [], image } = Astro.props;
+const trail = [{ label: 'Početna', href: '/' }, ...crumbs];
+const schema = {
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: trail.map((c, i) => ({
+    '@type': 'ListItem',
+    position: i + 1,
+    name: c.label,
+    ...(c.href ? { item: new URL(c.href, 'https://sportana.rs').href } : {}),
+  })),
+};
+---
+
+<section class:list={['phead', { 'phead--photo': image }]}>
+  {
+    image && (
+      <div class="phead__media">
+        <img src={img(image, 2400)} srcset={srcset(image)} sizes="100vw" alt={image.alt || ''} fetchpriority="high" />
+      </div>
+    )
+  }
+  <div class="phead__inner">
+    <nav class="crumbs" aria-label="Putanja">
+      <ol>
+        {
+          trail.map((c, i) => (
+            <li>
+              {c.href && i < trail.length - 1 ? <a href={c.href}>{c.label}</a> : <span aria-current="page">{c.label}</span>}
+            </li>
+          ))
+        }
+      </ol>
+    </nav>
+    {eyebrow && <p class="eyebrow phead__eyebrow">{eyebrow}</p>}
+    <h1 class="h1">{title}</h1>
+    {text && <p class="lead phead__text">{text}</p>}
+    <slot />
+  </div>
+  <script type="application/ld+json" set:html={JSON.stringify(schema)} />
+</section>
+
+<style>
+  .phead {
+    position: relative;
+    padding: clamp(24px, 3vw, 48px) var(--gutter) 0;
+  }
+  .phead__inner {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    gap: 14px;
+    justify-items: start;
+  }
+  .crumbs ol {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 0;
+    font-size: 13px;
+    color: var(--muted);
+  }
+  .crumbs li + li::before {
+    content: '/';
+    margin: 0 8px;
+    opacity: 0.5;
+  }
+  .crumbs a:hover {
+    color: var(--ink);
+    text-decoration: underline;
+  }
+  .phead__eyebrow {
+    color: var(--muted);
+  }
+  .phead__text {
+    color: var(--muted);
+  }
+
+  .phead--photo {
+    min-height: clamp(320px, 42vw, 560px);
+    display: flex;
+    align-items: flex-end;
+    padding-bottom: clamp(24px, 3vw, 44px);
+    margin-inline: var(--gutter);
+    margin-top: 16px;
+    padding-inline: clamp(20px, 3vw, 48px);
+    border-radius: var(--radius);
+    overflow: hidden;
+    color: var(--paper);
+    background: var(--ink);
+  }
+  .phead__media {
+    position: absolute;
+    inset: 0;
+  }
+  .phead__media img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .phead__media::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(11, 11, 10, 0.2), rgba(11, 11, 10, 0.78));
+  }
+  .phead--photo .crumbs ol,
+  .phead--photo .phead__eyebrow,
+  .phead--photo .phead__text {
+    color: rgba(246, 245, 241, 0.82);
+  }
+  .phead--photo .crumbs a:hover {
+    color: var(--paper);
+  }
+  .phead--photo .phead__eyebrow {
+    color: var(--volt);
+  }
+</style>

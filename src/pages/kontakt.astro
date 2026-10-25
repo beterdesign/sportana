@@ -1,0 +1,80 @@
+---
+import Base from '../layouts/Base.astro';
+import PageHead from '../components/PageHead.astro';
+import Icon from '../components/Icon.astro';
+import { getSettings } from '../lib/sanity.js';
+import { site } from '../data/site.js';
+
+const settings = await getSettings();
+const email = settings?.email || site.email;
+const address = settings?.address || site.address;
+---
+
+<Base title="Kontakt | Sportana, Vrbas" description={`Kontakt Sportane: ${email}, ${address}. Pitanja o proizvodima, porudžbinama i isporuci.`}>
+  <PageHead title="Kontakt" text="Pitanje o proizvodu, porudžbini ili isporuci? Pišite nam, odgovaramo u najkraćem roku." crumbs={[{ label: 'Kontakt' }]} />
+  <section class="contact wrap">
+    <a class="contact__card contact__card--main" href={`mailto:${email}`}>
+      <Icon name="mail" size={28} />
+      <span class="eyebrow">Email</span>
+      <span class="contact__big">{email}</span>
+    </a>
+    {
+      settings?.phone && (
+        <a class="contact__card" href={`tel:${settings.phone.replace(/[^\d+]/g, '')}`}>
+          <span class="eyebrow">Telefon</span>
+          <span class="contact__big">{settings.phone}</span>
+        </a>
+      )
+    }
+    <div class="contact__card">
+      <Icon name="pin" size={28} />
+      <span class="eyebrow">Adresa</span>
+      <span class="contact__big">{address}</span>
+      {settings?.hours && <span class="muted">{settings.hours}</span>}
+    </div>
+    {
+      settings?.kpUrl && (
+        <a class="contact__card" href={settings.kpUrl} target="_blank" rel="noopener">
+          <Icon name="star" size={28} />
+          <span class="eyebrow">KupujemProdajem</span>
+          <span class="contact__big">Naš profil ↗</span>
+          <span class="muted">Ocene kupaca i svi oglasi</span>
+        </a>
+      )
+    }
+  </section>
+</Base>
+
+<style>
+  .contact {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
+    gap: clamp(10px, 1.2vw, 18px);
+  }
+  .contact__card {
+    display: grid;
+    gap: 10px;
+    align-content: start;
+    padding: clamp(22px, 2.6vw, 36px);
+    border-radius: var(--radius);
+    background: var(--white);
+    transition: box-shadow 0.25s;
+    min-height: 220px;
+  }
+  a.contact__card:hover {
+    box-shadow: inset 0 0 0 1.5px var(--ink);
+  }
+  .contact__card--main {
+    background: var(--volt);
+  }
+  .contact__card .eyebrow {
+    margin-top: auto;
+  }
+  .contact__big {
+    font-stretch: 75%;
+    font-weight: 800;
+    font-size: clamp(1.5rem, 2.2vw, 2.2rem);
+    line-height: 1.05;
+    overflow-wrap: anywhere;
+  }
+</style>

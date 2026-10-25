@@ -1,92 +1,350 @@
 ---
-import { site, nav } from '../data/site.js';
-const path = Astro.url.pathname.replace(/\.html$/, '').replace(/\/$/, '');
+// Announcement marquee + sticky header. Search is always one tap away: a field-like button in the bar
+// (also "/" and Ctrl/⌘+K), plus wishlist and cart counters filled by main.js from localStorage.
+import Icon from './Icon.astro';
+import logo from '../../public/brand/logo.svg?raw';
+import { getCategories, getSettings } from '../lib/sanity.js';
+
+const [categories, settings] = await Promise.all([getCategories(), getSettings()]);
+const notes = settings?.announcements?.length ? settings.announcements : ['Oprema za trening kod kuće, u sali i na terenu'];
+const path = Astro.url.pathname.replace(/\.html$/, '');
+const short = {
+  'zastita-i-oporavak': 'Oporavak',
+  'lopte-i-timski-sportovi': 'Lopte',
+  'stoni-tenis-i-igre': 'Igre',
+  'plivanje-i-outdoor': 'Outdoor',
+  'funkcionalni': 'Funkcionalni',
+  'snaga': 'Snaga',
+  'borilacki-sportovi': 'Borilački',
+};
 ---
 
-<header class="header" data-header>
-  <a href="/" class="header__logo" aria-label={`${site.name} home`}>
-    <img src={site.logo} alt={site.name} height="54" />
-  </a>
-  <nav class="header__nav" aria-label="Main">
+<div class="announce" data-qa-ignore>
+  <div class="announce__track">
     {
-      nav.map((item) => (
-        <a href={item.href} class="header__link" aria-current={path === item.href || path.startsWith(`${item.href}/`) ? 'page' : undefined}>
-          {item.label}
-        </a>
+      [0, 1].map((copy) => (
+        <ul class="announce__list" aria-hidden={copy === 1 ? 'true' : undefined}>
+          {[...notes, ...notes].map((n) => (
+            <li>
+              <span class="announce__dot" />
+              {n}
+            </li>
+          ))}
+        </ul>
       ))
     }
+  </div>
+</div>
+
+<header class="hdr" data-header>
+  <div class="hdr__row">
+    <div class="hdr__left">
+      <button class="hdr__btn hdr__menu" data-menu-open aria-controls="menu" aria-expanded="false">
+        <Icon name="menu" size={22} />
+        <span>Meni</span>
+      </button>
+      <a href="/prodavnica" class="hdr__link hdr__wide" aria-current={path === '/prodavnica' ? 'page' : undefined}>Prodavnica</a>
+      <a href="/akcija" class="hdr__link hdr__wide hdr__sale" aria-current={path === '/akcija' ? 'page' : undefined}>Akcija</a>
+    </div>
+
+    <a href="/" class="hdr__logo" aria-label="Sportana, početna" set:html={logo} />
+
+    <div class="hdr__right">
+      <button class="hdr__search" data-search-open aria-controls="search" aria-expanded="false">
+        <Icon name="search" size={19} />
+        <span class="hdr__search-label">Pretraga</span>
+        <kbd class="hdr__kbd">/</kbd>
+      </button>
+      <a href="/sacuvano" class="hdr__btn hdr__icon" aria-label="Sačuvano">
+        <Icon name="heart" size={21} />
+        <span class="hdr__count" data-wish-count hidden>0</span>
+      </a>
+      <button class="hdr__btn hdr__cart" data-cart-open aria-controls="cart" aria-expanded="false">
+        <Icon name="bag" size={21} />
+        <span class="hdr__cart-label">Korpa</span>
+        <span class="hdr__count hdr__count--cart" data-cart-count>0</span>
+      </button>
+    </div>
+  </div>
+
+  <button class="hdr__find" data-search-open aria-controls="search">
+    <Icon name="search" size={18} />
+    <span>Pretraži {categories.reduce((n, c) => n + (c.count || 0), 0)} proizvoda…</span>
+  </button>
+
+  <nav class="hdr__cats" aria-label="Kategorije" data-qa-ignore>
+    <ul>
+      {
+        categories.map((c) => (
+          <li>
+            <a href={`/kategorija/${c.slug}`} aria-current={path === `/kategorija/${c.slug}` ? 'page' : undefined}>
+              {short[c.slug] || c.title}
+            </a>
+          </li>
+        ))
+      }
+      <li><a href="/brendovi" aria-current={path === '/brendovi' ? 'page' : undefined}>Brendovi</a></li>
+    </ul>
   </nav>
-  <a href="#contact" class="pill header__cta">Start a project</a>
 </header>
 
 <style>
-  .header {
-    position: fixed;
-    inset: 0 0 auto;
-    z-index: 50;
+  .announce {
+    background: var(--volt);
+    color: var(--ink);
+    overflow: hidden;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+  .announce__track {
+    display: flex;
+    width: max-content;
+    animation: marquee 48s linear infinite;
+  }
+  .announce:hover .announce__track {
+    animation-play-state: paused;
+  }
+  .announce__list {
+    display: flex;
+    flex-shrink: 0;
+  }
+  .announce__list li {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding-right: 48px;
+    white-space: nowrap;
+  }
+  .announce__dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--ink);
+  }
+  @keyframes marquee {
+    to {
+      transform: translateX(-50%);
+    }
+  }
+
+  .hdr {
+    position: sticky;
+    top: 0;
+    z-index: 60;
+    background: color-mix(in srgb, var(--paper) 94%, transparent);
+    -webkit-backdrop-filter: saturate(1.4) blur(14px);
+    backdrop-filter: saturate(1.4) blur(14px);
+    border-bottom: 1px solid var(--line);
+  }
+  .hdr__row {
     display: grid;
     grid-template-columns: 1fr auto 1fr;
     align-items: center;
-    padding: 10px var(--gutter);
-    mix-blend-mode: difference;
-    color: #fff;
+    height: var(--header-h);
+    padding-inline: var(--gutter);
+    gap: 12px;
   }
-  .header__logo {
-    justify-self: start;
-  }
-  .header__logo img {
-    height: 54px;
-    width: auto;
-  }
-  .header__nav {
+  .hdr__left,
+  .hdr__right {
     display: flex;
-    gap: 34px;
+    align-items: center;
+    gap: clamp(10px, 1.6vw, 26px);
   }
-  .header__link {
+  .hdr__right {
+    justify-content: flex-end;
+  }
+  .hdr__logo {
+    display: block;
+    color: var(--ink);
+    --ball: var(--ink);
+    transition: transform 0.4s var(--ease);
+  }
+  .hdr__logo:hover {
+    --ball: var(--volt);
+  }
+  .hdr__logo :global(svg) {
+    display: block;
+    width: clamp(118px, 12vw, 168px);
+    height: auto;
+    overflow: visible;
+  }
+  .hdr__logo :global(.ball) {
+    transition: fill 0.3s;
+  }
+  .hdr__btn,
+  .hdr__link {
     position: relative;
-    font-size: 11.5px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 44px;
     font-weight: 600;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
+    font-size: 14px;
   }
-  .header__link::after {
+  .hdr__link {
+    border-bottom: 1.5px solid transparent;
+    min-height: 0;
+    padding-block: 4px;
+  }
+  .hdr__link:hover,
+  .hdr__link[aria-current] {
+    border-color: currentColor;
+  }
+  .hdr__sale::before {
     content: '';
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--volt);
+    box-shadow: 0 0 0 1.5px var(--ink);
+    margin-right: 7px;
+  }
+  .hdr__icon {
+    min-width: 44px;
+    justify-content: center;
+  }
+  .hdr__count {
+    min-width: 20px;
+    height: 20px;
+    padding: 0 5px;
+    border-radius: 999px;
+    background: var(--ink);
+    color: var(--paper);
+    font-size: 11px;
+    font-weight: 700;
+    display: inline-grid;
+    place-items: center;
+    font-variant-numeric: tabular-nums;
+  }
+  .hdr__icon .hdr__count {
     position: absolute;
-    left: 0;
+    top: 2px;
     right: 0;
-    bottom: -4px;
-    height: 1px;
-    background: currentColor;
-    transform: scaleX(0);
-    transform-origin: right;
-    transition: transform 0.5s var(--ease);
   }
-  .header__link:hover::after,
-  .header__link[aria-current='page']::after {
-    transform: scaleX(1);
-    transform-origin: left;
+  .hdr__count--cart.is-bump {
+    animation: bump 0.5s var(--ease);
   }
-  .header__cta {
-    justify-self: end;
+  @keyframes bump {
+    40% {
+      transform: scale(1.45);
+      background: var(--volt);
+      color: var(--ink);
+    }
   }
-  .header__cta:hover {
-    background: #fff;
-    color: #000;
-    border-color: #fff;
+  .hdr__search {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    height: 42px;
+    width: clamp(150px, 18vw, 280px);
+    padding: 0 8px 0 14px;
+    border-radius: 999px;
+    background: var(--white);
+    box-shadow: inset 0 0 0 1px var(--line);
+    font-size: 14px;
+    color: var(--muted);
+    transition: box-shadow 0.3s;
+  }
+  .hdr__search:hover {
+    box-shadow: inset 0 0 0 1.5px var(--ink);
+    color: var(--ink);
+  }
+  .hdr__search-label {
+    flex: 1;
+    text-align: left;
+  }
+  .hdr__kbd {
+    font: 600 11px/1 var(--f);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 5px 8px;
+    color: var(--muted);
+  }
+  .hdr__find {
+    display: none;
   }
 
-  @media (max-width: 760px) {
-    .header {
-      grid-template-columns: 1fr auto;
-    }
-    .header__nav {
+  .hdr__cats {
+    border-top: 1px solid var(--line);
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .hdr__cats::-webkit-scrollbar {
+    display: none;
+  }
+  .hdr__cats ul {
+    display: flex;
+    justify-content: center;
+    gap: clamp(18px, 2.4vw, 40px);
+    padding: 0 var(--gutter);
+    width: max-content;
+    min-width: 100%;
+  }
+  .hdr__cats a {
+    display: block;
+    padding: 11px 0 10px;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    border-bottom: 2px solid transparent;
+  }
+  .hdr__cats a:hover,
+  .hdr__cats a[aria-current] {
+    border-color: var(--ink);
+  }
+
+  @media (max-width: 1100px) {
+    .hdr__wide {
       display: none;
     }
-    .header__cta {
-      padding: 9px 14px;
+    .hdr__cats ul {
+      justify-content: flex-start;
     }
-    .header__logo img {
-      height: 42px;
+  }
+  @media (max-width: 760px) {
+    .hdr__search,
+    .hdr__cart-label,
+    .hdr__menu span {
+      display: none;
+    }
+    .hdr__menu {
+      min-width: 44px;
+    }
+    .hdr__cart {
+      min-width: 44px;
+      justify-content: center;
+    }
+    .hdr__cart .hdr__count {
+      position: absolute;
+      top: 2px;
+      right: -4px;
+    }
+    .hdr__right {
+      gap: 4px;
+    }
+    .hdr__find {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      width: calc(100% - 2 * var(--gutter));
+      margin: 0 var(--gutter) 10px;
+      height: 44px;
+      padding: 0 16px;
+      border-radius: 999px;
+      background: var(--white);
+      box-shadow: inset 0 0 0 1px var(--line);
+      color: var(--muted);
+      font-size: 15px;
+    }
+    .hdr__cats {
+      display: none;
     }
   }
 </style>

@@ -8,7 +8,7 @@ export default defineCliConfig({
   // hosted at https://sportana.sanity.studio
   studioHost: 'sportana',
   deployment: {
-    // appId: printed by the first `npm run deploy`; paste it here so later deploys skip the prompt
+    appId: 'ohtxvt7cvq0eya4uapanwmxi',
     /**
      * Enable auto-updates for studios.
      * Learn more at https://www.sanity.io/docs/studio/latest-version-of-sanity#k47faf43faf56

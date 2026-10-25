@@ -1,25 +1,71 @@
 ---
 import Base from '../layouts/Base.astro';
-import Header from '../components/Header.astro';
-import PageHero from '../components/PageHero.astro';
-import Footer from '../components/Footer.astro';
+import Icon from '../components/Icon.astro';
+import { getCategories } from '../lib/sanity.js';
+
+const categories = await getCategories();
 ---
 
-<Base title="Page not found | Sportana" description="TODO: page description">
-  <Header />
-  <main>
-    <PageHero label="Error 404" big="LOST" italic="in the layout." meta="Sportana · page not found">
-      This page does not exist, or it moved when the site was rebuilt. <a href="/" class="back">Back to the homepage ↗</a>
-    </PageHero>
-  </main>
-  <Footer />
+<Base title="Stranica nije pronađena | Sportana" description="Ova stranica ne postoji. Pretražite proizvode ili izaberite kategoriju." noindex>
+  <section class="lost wrap">
+    <p class="display lost__code">4<span class="lost__ball" aria-hidden="true"></span>4</p>
+    <h1 class="h2">Lopta je otišla u aut</h1>
+    <p class="lead muted">Ova stranica ne postoji ili je proizvod prodat. Pretražite ponudu ili krenite od kategorija.</p>
+    <div class="lost__actions">
+      <button class="btn btn--volt" data-search-open><Icon name="search" size={18} /> Pretraži proizvode</button>
+      <a href="/" class="btn btn--line">Početna</a>
+    </div>
+    <ul class="lost__cats">
+      {categories.map((c) => <li><a href={`/kategorija/${c.slug}`}>{c.title}</a></li>)}
+    </ul>
+  </section>
 </Base>
 
 <style>
-  .back {
+  .lost {
+    display: grid;
+    gap: 18px;
+    justify-items: start;
+    padding-top: clamp(32px, 6vw, 96px);
+  }
+  .lost__code {
+    display: flex;
+    align-items: center;
+    gap: 0.06em;
+    font-size: clamp(6rem, 22vw, 18rem);
+  }
+  .lost__ball {
+    width: 0.68em;
+    height: 0.68em;
+    border-radius: 50%;
+    background: var(--volt);
+    box-shadow: inset 0 0 0 0.03em var(--ink);
+    animation: lost-bounce 1.6s var(--ease) infinite alternate;
+  }
+  @keyframes lost-bounce {
+    to {
+      transform: translateY(-14%);
+    }
+  }
+  .lost__actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .lost__cats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 12px;
+  }
+  .lost__cats a {
     display: inline-block;
-    margin-top: 0.8rem;
-    color: var(--cream);
-    border-bottom: 1px solid currentColor;
+    padding: 9px 14px;
+    border-radius: 999px;
+    background: var(--white);
+    box-shadow: inset 0 0 0 1px var(--line);
+  }
+  .lost__cats a:hover {
+    box-shadow: inset 0 0 0 1.5px var(--ink);
   }
 </style>

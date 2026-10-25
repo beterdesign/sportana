@@ -1,0 +1,143 @@
+---
+import Base from '../layouts/Base.astro';
+import PageHead from '../components/PageHead.astro';
+import Icon from '../components/Icon.astro';
+import { getSettings, getCategories, getBrands, getProducts, img, srcset } from '../lib/sanity.js';
+import { site } from '../data/site.js';
+
+const [settings, categories, brands, products] = await Promise.all([getSettings(), getCategories(), getBrands(), getProducts()]);
+const hero = categories.find((c) => c.slug === 'snaga')?.image;
+---
+
+<Base title="O nama | Sportana, Vrbas" description="Sportana d.o.o. iz Vrbasa od 2015. godine prodaje sportsku i fitnes opremu putem interneta i pošte, sa isporukom širom Srbije.">
+  <PageHead title="O nama" eyebrow="Sportana · Vrbas · od 2015." crumbs={[{ label: 'O nama' }]} />
+  <section class="story wrap">
+    <div class="story__text">
+      <h2 class="h2">{settings?.aboutTitle || 'Oprema koja izdrži trening'}</h2>
+      <p class="lead">{settings?.aboutText}</p>
+      <p>
+        Ponuda pokriva sve od kućne teretane do sportske sale: kardio sprave poznatih proizvođača, tegove i klupe,
+        opremu za borilačke sportove, lopte i rekvizite za klubove i trenere, stolove za stoni tenis i igre, kao i
+        vozila i bicikle za najmlađe.
+      </p>
+      <a href="/prodavnica" class="btn">Pogledajte ponudu <Icon name="arrow" size={18} /></a>
+    </div>
+    <div class="story__photo">
+      <img src={img(hero, 1600)} srcset={srcset(hero, [800, 1200, 1600])} sizes="(max-width: 960px) 100vw, 45vw" alt={hero?.alt || ''} loading="lazy" />
+    </div>
+  </section>
+
+  <section class="facts wrap" aria-label="Sportana u brojkama">
+    <dl>
+      <div><dt>Osnovana</dt><dd>2015.</dd></div>
+      <div><dt>Proizvoda u ponudi</dt><dd>{products.length}</dd></div>
+      <div><dt>Brendova</dt><dd>{brands.length}</dd></div>
+      <div><dt>Kategorija</dt><dd>{categories.length}</dd></div>
+    </dl>
+  </section>
+
+  <section class="company wrap">
+    <h2 class="h3">Podaci o firmi</h2>
+    <dl class="company__list">
+      <div><dt>Naziv</dt><dd>{site.legal}</dd></div>
+      <div><dt>Sedište</dt><dd>{settings?.address || site.address}</dd></div>
+      <div><dt>Delatnost</dt><dd>Trgovina na malo posredstvom pošte ili preko interneta</dd></div>
+      <div><dt>Osnovana</dt><dd>{site.founded}</dd></div>
+      <div><dt>Email</dt><dd><a href={`mailto:${settings?.email || site.email}`}>{settings?.email || site.email}</a></dd></div>
+    </dl>
+  </section>
+</Base>
+
+<style>
+  .story {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: clamp(24px, 5vw, 96px);
+    align-items: center;
+  }
+  .story__text {
+    display: grid;
+    gap: 20px;
+    justify-items: start;
+  }
+  .story__text p:not(.lead) {
+    max-width: 38em;
+    color: var(--muted);
+  }
+  .story__photo img {
+    width: 100%;
+    aspect-ratio: 4 / 5;
+    object-fit: cover;
+    border-radius: var(--radius);
+  }
+  .facts dl {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    margin: 0;
+    border-block: 1px solid var(--line);
+  }
+  .facts div {
+    padding: 24px 0;
+    display: grid;
+    gap: 6px;
+  }
+  .facts div + div {
+    padding-left: clamp(12px, 2vw, 28px);
+    border-left: 1px solid var(--line);
+  }
+  .facts dt {
+    font-size: 13px;
+    color: var(--muted);
+  }
+  .facts dd {
+    margin: 0;
+    font-stretch: 68%;
+    font-weight: 800;
+    font-size: clamp(2.6rem, 5vw, 5rem);
+    line-height: 0.9;
+  }
+  .company {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+    gap: 16px 32px;
+  }
+  .company__list {
+    margin: 0;
+  }
+  .company__list div {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+    gap: 16px;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .company__list dt {
+    color: var(--muted);
+  }
+  .company__list dd {
+    margin: 0;
+  }
+  .company__list a {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+  @media (max-width: 960px) {
+    .story,
+    .company {
+      grid-template-columns: 1fr;
+    }
+    .story__photo img {
+      aspect-ratio: 16 / 10;
+    }
+    .facts dl {
+      grid-template-columns: 1fr 1fr;
+    }
+    .facts div:nth-child(3) {
+      padding-left: 0;
+      border-left: 0;
+    }
+    .facts div:nth-child(n + 3) {
+      border-top: 1px solid var(--line);
+    }
+  }
+</style>

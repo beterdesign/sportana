@@ -1,0 +1,46 @@
+---
+import Base from '../layouts/Base.astro';
+import PageHead from '../components/PageHead.astro';
+import { site } from '../data/site.js';
+---
+
+<Base title="Politika privatnosti | Sportana" description="Kako Sportana postupa sa podacima posetilaca sajta: korpa i sačuvani proizvodi ostaju u vašem pregledaču.">
+  <PageHead title="Politika privatnosti" crumbs={[{ label: 'Politika privatnosti' }]} />
+  <section class="legal wrap">
+    <p>Rukovalac podacima je {site.legal}, {site.address}. Za sva pitanja o podacima pišite na <a href={`mailto:${site.email}`}>{site.email}</a>.</p>
+    <h2 class="h3">Korpa i sačuvani proizvodi</h2>
+    <p>
+      Sadržaj korpe, sačuvani i nedavno pregledani proizvodi čuvaju se samo u vašem pregledaču (localStorage), na vašem
+      uređaju. Ne šaljemo ih na naš server i ne koristimo ih za praćenje. Brišete ih pražnjenjem korpe ili brisanjem
+      podataka sajta u pregledaču.
+    </p>
+    <h2 class="h3">Porudžbine i poruke</h2>
+    <p>
+      Kada nam pošaljete porudžbinu ili pitanje emailom, podatke iz poruke (ime, adresa, telefon) koristimo samo da
+      obradimo porudžbinu i odgovorimo vam, u skladu sa Zakonom o zaštiti podataka o ličnosti.
+    </p>
+    <h2 class="h3">Kolačići i analitika</h2>
+    <p>Sajt ne koristi kolačiće za oglašavanje niti alate za praćenje posetilaca.</p>
+    <h2 class="h3">Spoljni servisi</h2>
+    <p>Fontovi se učitavaju sa Google Fonts, a fotografije proizvoda sa servisa Sanity, koji pri tome vide vašu IP adresu.</p>
+  </section>
+</Base>
+
+<style>
+  .legal {
+    display: grid;
+    gap: 14px;
+    max-width: calc(68ch + 2 * var(--gutter));
+  }
+  .legal h2 {
+    margin-top: 18px;
+  }
+  .legal p {
+    color: var(--muted);
+  }
+  .legal a {
+    color: var(--ink);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+</style>

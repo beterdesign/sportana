@@ -16,7 +16,10 @@ const client = getCliClient({apiVersion: '2025-02-19'})
 const root = path.resolve('..')
 const docs = JSON.parse(fs.readFileSync(path.join(root, 'content/seed.json'), 'utf8'))
 const key = () => randomUUID().replace(/-/g, '').slice(0, 12)
-const uploads = new Map()
+// uploaded images are remembered in content/uploads.json, so a re-run never uploads the same file twice
+const cacheFile = path.join(root, 'content/uploads.json')
+const uploads = new Map(fs.existsSync(cacheFile) ? Object.entries(JSON.parse(fs.readFileSync(cacheFile, 'utf8'))) : [])
+const saveCache = () => fs.writeFileSync(cacheFile, JSON.stringify(Object.fromEntries(uploads), null, 1))
 
 async function upload(src) {
   if (uploads.has(src)) return uploads.get(src)
@@ -61,9 +64,19 @@ async function convert(value) {
   return value
 }
 
-for (const doc of docs) {
-  if (!doc._id || !doc._type) throw new Error(`every seed document needs _id and _type: ${JSON.stringify(doc).slice(0, 80)}`)
-  await client.createOrReplace(await convert(doc))
-  console.log(`${doc._type.padEnd(8)} ${doc._id}`)
+// --only <type> seeds one document type; documents go up 6 at a time
+const only = process.argv.includes('--only') ? process.argv[process.argv.indexOf('--only') + 1] : null
+const queue = docs.filter((d) => !only || d._type === only)
+for (const doc of queue) if (!doc._id || !doc._type) throw new Error(`every seed document needs _id and _type: ${JSON.stringify(doc).slice(0, 80)}`)
+let done = 0
+async function worker() {
+  while (queue.length) {
+    const doc = queue.shift()
+    await client.createOrReplace(await convert(doc))
+    if (++done % 25 === 0) saveCache()
+    console.log(`${doc._type.padEnd(8)} ${doc._id}`)
+  }
 }
+await Promise.all(Array.from({length: 6}, worker))
+saveCache()
 console.log(`done: ${docs.length} documents, ${uploads.size} images`)

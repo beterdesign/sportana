@@ -1,46 +1,133 @@
 ---
 import '../styles/global.css';
 import { site } from '../data/site.js';
-import ProjectModal from '../components/ProjectModal.astro';
+import Header from '../components/Header.astro';
+import Menu from '../components/Menu.astro';
+import Search from '../components/Search.astro';
+import Cart from '../components/Cart.astro';
+import Footer from '../components/Footer.astro';
 
 interface Props {
   title?: string;
   description?: string;
   image?: string;
+  schema?: object | object[];
+  noindex?: boolean;
 }
 
-// image: absolute URL (Sanity) or a path in public/; the default /og.jpg (1200×630) is made per client
-const { title = site.title, description = site.description, image = '/og.jpg' } = Astro.props;
+// image: absolute URL (Sanity) or a path in public/; the default /og.jpg is 1200×630
+const { title = site.title, description = site.description, image = '/og.jpg', schema, noindex = false } = Astro.props;
 const ogImage = new URL(image, Astro.site).href;
-// build.format 'file' renders /work as work.html; the public URL has no extension
+// build.format 'file' renders /prodavnica as prodavnica.html; the public URL has no extension
 const canonicalPath = Astro.url.pathname.replace(/\.html$/, '').replace(/\/index$/, '/');
+const canonical = new URL(canonicalPath, Astro.site).href;
+
+const org = {
+  '@context': 'https://schema.org',
+  '@type': 'Store',
+  name: 'Sportana',
+  legalName: site.legal,
+  url: 'https://sportana.rs',
+  logo: 'https://sportana.rs/brand/mark.svg',
+  email: site.email,
+  foundingDate: '2015-12-11',
+  address: { '@type': 'PostalAddress', streetAddress: 'Panonska 22', postalCode: '21460', addressLocality: 'Vrbas', addressCountry: 'RS' },
+  currenciesAccepted: 'RSD',
+};
+const schemas = [org, ...(Array.isArray(schema) ? schema : schema ? [schema] : [])];
 ---
 
 <!doctype html>
-<html lang="en">
+<html lang="sr-Latn">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{title}</title>
     <meta name="description" content={description} />
+    {noindex && <meta name="robots" content="noindex, follow" />}
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
     <meta property="og:type" content="website" />
+    <meta property="og:locale" content="sr_RS" />
+    <meta property="og:site_name" content="Sportana" />
+    <meta property="og:url" content={canonical} />
     <meta property="og:image" content={ogImage} />
     <meta name="twitter:card" content="summary_large_image" />
-    <link rel="canonical" href={new URL(canonicalPath, Astro.site)} />
+    <meta name="theme-color" content="#d4ff1f" />
+    <link rel="canonical" href={canonical} />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <link rel="preconnect" href="https://api.fontshare.com" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="preconnect" href="https://cdn.sanity.io" />
     <link
       rel="stylesheet"
-      href="https://api.fontshare.com/v2/css?f[]=general-sans@400,500,600&f[]=cabinet-grotesk@500,700,800&f[]=zodiak@400,401&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Archivo:ital,wdth,wght@0,62..125,100..900;1,62..125,100..900&display=swap"
     />
+    {schemas.map((s) => <script type="application/ld+json" set:html={JSON.stringify(s)} />)}
+    <script is:inline>document.documentElement.classList.add('js');</script>
   </head>
-  <body class="is-loading">
-    <slot />
-    <ProjectModal />
+  <body>
+    <a href="#main" class="skip">Preskoči na sadržaj</a>
+    <Header />
+    <main id="main">
+      <slot />
+    </main>
+    <Footer />
+    <Menu />
+    <Search />
+    <Cart />
+    <div class="toast" data-toast role="status" aria-live="polite" hidden></div>
     <script>
       import '../scripts/main.js';
     </script>
   </body>
 </html>
+
+<style>
+  .skip {
+    position: absolute;
+    left: 12px;
+    top: -60px;
+    z-index: 200;
+    padding: 10px 16px;
+    background: var(--ink);
+    color: var(--paper);
+    border-radius: 999px;
+  }
+  .skip:focus {
+    top: 12px;
+  }
+  .toast {
+    position: fixed;
+    left: 50%;
+    bottom: 24px;
+    z-index: 120;
+    transform: translateX(-50%);
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    max-width: calc(100% - 32px);
+    padding: 12px 12px 12px 20px;
+    border-radius: 999px;
+    background: var(--ink);
+    color: var(--paper);
+    font-size: 14px;
+    font-weight: 500;
+    box-shadow: 0 20px 50px rgba(11, 11, 10, 0.25);
+    animation: toast 0.5s var(--ease) both;
+  }
+  .toast :global(button) {
+    flex-shrink: 0;
+    padding: 8px 14px;
+    border-radius: 999px;
+    background: var(--volt);
+    color: var(--ink);
+    font-weight: 600;
+  }
+  @keyframes toast {
+    from {
+      transform: translate(-50%, 20px);
+      opacity: 0;
+    }
+  }
+</style>

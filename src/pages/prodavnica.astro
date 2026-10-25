@@ -1,0 +1,58 @@
+---
+import Base from '../layouts/Base.astro';
+import PageHead from '../components/PageHead.astro';
+import Listing from '../components/Listing.astro';
+import { getCategories, getProducts } from '../lib/sanity.js';
+
+const [categories, products] = await Promise.all([getCategories(), getProducts()]);
+// default order: featured, then new, then by category order
+const catOrder = new Map(categories.map((c, i) => [c.slug, i]));
+const sorted = [...products].sort(
+  (a, b) => (b.featured ? 1 : 0) - (a.featured ? 1 : 0) || (b.isNew ? 1 : 0) - (a.isNew ? 1 : 0) || catOrder.get(a.category?.slug) - catOrder.get(b.category?.slug),
+);
+---
+
+<Base
+  title="Prodavnica | Sva sportska i fitnes oprema | Sportana"
+  description={`Svih ${products.length} proizvoda Sportane na jednom mestu: kardio sprave, tegovi, borilačka oprema, lopte, stoni tenis, oprema za decu. Filtrirajte po tipu, brendu i ceni.`}
+>
+  <PageHead title="Prodavnica" eyebrow={`${products.length} proizvoda · ${categories.length} kategorija`} crumbs={[{ label: 'Prodavnica' }]}>
+    <ul class="quick" data-qa-ignore>
+      {categories.map((c) => <li><a href={`/kategorija/${c.slug}`}>{c.title} <span>{c.count}</span></a></li>)}
+    </ul>
+  </PageHead>
+  <Listing products={sorted} categories={categories} />
+</Base>
+
+<style>
+  .quick {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    max-width: 100%;
+    padding-bottom: 4px;
+    scrollbar-width: none;
+  }
+  .quick::-webkit-scrollbar {
+    display: none;
+  }
+  .quick a {
+    display: inline-flex;
+    gap: 8px;
+    align-items: center;
+    height: 40px;
+    padding: 0 16px;
+    border-radius: 999px;
+    background: var(--white);
+    box-shadow: inset 0 0 0 1px var(--line);
+    font-weight: 500;
+    white-space: nowrap;
+  }
+  .quick a:hover {
+    box-shadow: inset 0 0 0 1.5px var(--ink);
+  }
+  .quick span {
+    color: var(--muted);
+    font-size: 12px;
+  }
+</style>

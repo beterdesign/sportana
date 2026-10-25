@@ -1,0 +1,119 @@
+---
+import Base from '../../layouts/Base.astro';
+import PageHead from '../../components/PageHead.astro';
+import Listing from '../../components/Listing.astro';
+import { getCategories, getProducts, img } from '../../lib/sanity.js';
+
+export async function getStaticPaths() {
+  const [categories, products] = await Promise.all([getCategories(), getProducts()]);
+  return categories.map((category) => ({
+    params: { slug: category.slug },
+    props: { category, products: products.filter((p) => p.category?.slug === category.slug) },
+  }));
+}
+
+const { category, products } = Astro.props;
+const sorted = [...products].sort((a, b) => (b.featured ? 1 : 0) - (a.featured ? 1 : 0) || (b.isNew ? 1 : 0) - (a.isNew ? 1 : 0) || a.price - b.price);
+const schema = {
+  '@context': 'https://schema.org',
+  '@type': 'CollectionPage',
+  name: category.title,
+  url: `https://sportana.rs/kategorija/${category.slug}`,
+  mainEntity: {
+    '@type': 'ItemList',
+    numberOfItems: products.length,
+    itemListElement: products.slice(0, 30).map((p, i) => ({ '@type': 'ListItem', position: i + 1, url: `https://sportana.rs${p.href}`, name: p.name })),
+  },
+};
+---
+
+<Base
+  title={`${category.title} | Sportana`}
+  description={`${category.intro} ${products.length} proizvoda, isporuka širom Srbije.`.slice(0, 158)}
+  image={img(category.image, 1200)}
+  schema={schema}
+>
+  <PageHead
+    title={category.title}
+    eyebrow={`${products.length} proizvoda`}
+    text={category.intro}
+    image={category.image}
+    crumbs={[{ label: 'Prodavnica', href: '/prodavnica' }, { label: category.title }]}
+  />
+  <nav class="types" aria-label={`Tipovi: ${category.title}`} data-qa-ignore>
+    <ul>
+      {
+        category.types
+          ?.filter((t) => products.some((p) => p.type === t))
+          .map((t) => (
+            <li>
+              <a href={`?tip=${encodeURIComponent(t)}`} data-type-link={t}>
+                {t} <span>{products.filter((p) => p.type === t).length}</span>
+              </a>
+            </li>
+          ))
+      }
+    </ul>
+  </nav>
+  <Listing products={sorted} types={category.types} />
+</Base>
+
+<script>
+  // type links set the "Tip" filter without reloading the page; clicking the active one clears it
+  const links = [...document.querySelectorAll<HTMLAnchorElement>("[data-type-link]")];
+  const current = () => new URLSearchParams(location.search).get("tip")?.split(",") || [];
+  const sync = () => links.forEach((x) => x.toggleAttribute("aria-current", current().length === 1 && current()[0] === x.dataset.typeLink));
+  links.forEach((a) =>
+    a.addEventListener("click", (e) => {
+      e.preventDefault();
+      const t = a.dataset.typeLink;
+      const only = current().length === 1 && current()[0] === t;
+      const boxes = [...document.querySelectorAll<HTMLInputElement>("[data-filter=\"tip\"]")];
+      boxes.forEach((i) => (i.checked = !only && i.value === t));
+      boxes[0]?.dispatchEvent(new Event("change", { bubbles: true }));
+    }),
+  );
+  document.addEventListener("change", () => setTimeout(sync, 0));
+  document.addEventListener("click", () => setTimeout(sync, 0));
+  sync();
+</script>
+
+<style>
+  .types {
+    margin-top: 20px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .types::-webkit-scrollbar {
+    display: none;
+  }
+  .types ul {
+    display: flex;
+    gap: 8px;
+    padding-inline: var(--gutter);
+    width: max-content;
+  }
+  .types a {
+    display: inline-flex;
+    gap: 8px;
+    align-items: center;
+    height: 40px;
+    padding: 0 16px;
+    border-radius: 999px;
+    background: var(--white);
+    box-shadow: inset 0 0 0 1px var(--line);
+    font-weight: 500;
+    white-space: nowrap;
+  }
+  .types a:hover {
+    box-shadow: inset 0 0 0 1.5px var(--ink);
+  }
+  .types a[aria-current] {
+    background: var(--ink);
+    color: var(--paper);
+  }
+  .types span {
+    opacity: 0.6;
+    font-size: 12px;
+  }
+</style>

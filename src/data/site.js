@@ -1,55 +1,80 @@
-// All site copy lives here, so editing content never means touching layout.
-// Everything marked TODO is filled from the client brief (brief/BRIEF.md) during the build.
+// Copy that is not in Sanity. Contact details, the announcement bar, hero and "O nama" texts live in Sanity
+// (Podešavanja sajta); these are the fallbacks and the fixed labels.
 
 export const site = {
   name: 'Sportana',
+  legal: 'SPORTANA d.o.o. Vrbas',
+  founded: '11. decembra 2015.',
   email: 'info@sportana.rs',
-  calendly: '', // TODO: booking link, or leave empty to hide "Book a call"
-  linkedin: '', // TODO
-  logo: '/brand/logo.svg',
-  mark: '/brand/mark.svg',
-  title: 'Sportana — TODO: positioning line',
-  description: 'TODO: 150–160 character description for search results and social cards.',
+  address: 'Panonska 22, 21460 Vrbas',
+  title: 'Sportana | Sportska i fitnes oprema, Vrbas',
+  description:
+    'Online prodavnica sportske opreme: trake za trčanje, sobni bicikli, tegovi, oprema za boks, lopte, stoni tenis i vozila za decu. Sportana, Vrbas, od 2015.',
 };
 
-export const nav = [
-  { label: 'Work', href: '/work' },
-  { label: 'Services', href: '/services' },
-  { label: 'Studio', href: '/studio' },
-  { label: 'Journal', href: '/journal' },
+// What people look for most: shown in the empty search overlay
+export const popularSearches = [
+  'Traka za trčanje',
+  'Sobni bicikl',
+  'Bokserske rukavice',
+  'Bučice',
+  'Košarkaška lopta',
+  'Strunjača',
+  'Sto za stoni tenis',
+  'Auto na akumulator',
 ];
 
-// Labels for Sanity project categories (keep ids in sync with studio/schemaTypes/project.ts).
-export const categories = [
-  { id: 'all', label: 'All' },
-  { id: 'one', label: 'TODO: category one' },
-  { id: 'two', label: 'TODO: category two' },
-  { id: 'three', label: 'TODO: category three' },
+export const infoLinks = [
+  { label: 'Akcija', href: '/akcija' },
+  { label: 'Brendovi', href: '/brendovi' },
+  { label: 'O nama', href: '/o-nama' },
+  { label: 'Kontakt', href: '/kontakt' },
+  { label: 'Česta pitanja', href: '/cesta-pitanja' },
 ];
 
-export const steps = [
-  { kicker: 'Discovery', title: 'TODO', text: 'TODO', tags: 'TODO' },
-  { kicker: 'Strategy', title: 'TODO', text: 'TODO', tags: 'TODO' },
-  { kicker: 'Build', title: 'TODO', text: 'TODO', tags: 'TODO' },
-  { kicker: 'Launch', title: 'TODO', text: 'TODO', tags: 'TODO' },
+// Delivery and payment answers are general until the client confirms their terms (see brief, Open questions).
+export const faq = [
+  {
+    title: 'Kupovina',
+    items: [
+      {
+        q: 'Kako da pronađem proizvod?',
+        a: 'Kliknite na „Pretraga” u zaglavlju ili pritisnite taster / na tastaturi i počnite da kucate. Pretraga radi i bez kvačica: „trbusnjaci” pronalazi „trbušnjake”. Možete i da birate kategoriju iz menija pa suzite izbor filterima po tipu, brendu i ceni.',
+      },
+      {
+        q: 'Kako da poručim?',
+        a: 'Dodajte proizvode u korpu i pratite korake u korpi. Poručivanje direktno preko sajta stiže uskoro; do tada nam pišite na email sa spiskom iz korpe i javićemo vam se sa potvrdom.',
+      },
+      {
+        q: 'Da li su cene na sajtu konačne?',
+        a: 'Cene su izražene u dinarima (RSD). Akcijske cene važe do isteka akcije ili dok traju zalihe.',
+      },
+    ],
+  },
+  {
+    title: 'Isporuka',
+    items: [
+      {
+        q: 'Gde isporučujete?',
+        a: 'Šaljemo na adrese širom Srbije. Rok i cena isporuke zavise od veličine i težine paketa; tačne uslove dobijate uz potvrdu porudžbine.',
+      },
+      {
+        q: 'Šta je sa velikim spravama, poput traka za trčanje?',
+        a: 'Velike sprave šaljemo u originalnom pakovanju. Pre slanja vas kontaktiramo da dogovorimo termin isporuke.',
+      },
+    ],
+  },
+  {
+    title: 'O Sportani',
+    items: [
+      {
+        q: 'Ko stoji iza Sportane?',
+        a: 'SPORTANA d.o.o. iz Vrbasa, osnovana 2015. godine, bavi se trgovinom na malo putem pošte i interneta. Na KupujemProdajem nas kupci prate od 2016. godine.',
+      },
+      {
+        q: 'Koje brendove prodajete?',
+        a: 'Između ostalih Kettler, Everlast, Lotto Fitness, Orion, NordicTrack, Spalding, Capriolo, Nabaiji i Sporter Boxing. Ceo spisak je na stranici Brendovi.',
+      },
+    ],
+  },
 ];
-
-export const services = [
-  { title: 'TODO: service', text: 'TODO', price: '', sub: 'TODO', long: 'TODO', deliverables: ['TODO'] },
-];
-
-export const clients = []; // TODO: client / partner names for "Trusted by", or remove the block
-
-export const principles = [{ title: 'TODO', text: 'TODO' }];
-
-export const servicesFaq = [{ q: 'TODO', a: 'TODO' }];
-export const studioFaq = [{ q: 'TODO', a: 'TODO' }];
-
-export const journalTopics = [
-  { id: 'all', label: 'All' },
-  { id: 'case', label: 'Case studies' },
-  { id: 'guide', label: 'Guides' },
-  { id: 'news', label: 'News' },
-];
-
-export const faqGroups = [{ title: 'TODO', items: [{ q: 'TODO', a: 'TODO' }] }];

@@ -1,0 +1,168 @@
+---
+// Cart page. Online ordering is the next phase (owner's decision): until then the order goes by email,
+// with the cart contents already written into the message.
+import Base from '../layouts/Base.astro';
+import PageHead from '../components/PageHead.astro';
+import Icon from '../components/Icon.astro';
+import { getSettings } from '../lib/sanity.js';
+import { site } from '../data/site.js';
+
+const settings = await getSettings();
+const email = settings?.email || site.email;
+---
+
+<Base title="Korpa | Sportana" description="Vaša korpa u Sportani: proizvodi, količine i ukupan iznos." noindex>
+  <PageHead title="Korpa" crumbs={[{ label: 'Korpa' }]} />
+  <section class="bag wrap" data-bag data-email={email}>
+    <div class="bag__lines">
+      <ul data-bag-lines></ul>
+      <div class="bag__empty" data-bag-empty hidden>
+        <p class="h3">Korpa je prazna</p>
+        <p class="muted">Dodajte proizvode iz prodavnice ili ih pronađite pretragom.</p>
+        <div class="bag__actions">
+          <button class="btn" data-search-open><Icon name="search" size={18} /> Pretraži</button>
+          <a href="/prodavnica" class="btn btn--line">Prodavnica</a>
+        </div>
+      </div>
+    </div>
+    <aside class="bag__sum" data-bag-sum hidden>
+      <p class="eyebrow">Pregled</p>
+      <dl>
+        <div><dt>Proizvodi (<span data-bag-n>0</span>)</dt><dd data-bag-subtotal>0 RSD</dd></div>
+        <div><dt>Ušteda</dt><dd data-bag-save>0 RSD</dd></div>
+        <div><dt>Isporuka</dt><dd>po dogovoru</dd></div>
+        <div class="bag__total"><dt>Ukupno</dt><dd data-bag-total>0 RSD</dd></div>
+      </dl>
+      <div class="bag__soon">
+        <p><b>Online poručivanje stiže uskoro.</b> Do tada pošaljite porudžbinu emailom: spisak iz korpe se sam upisuje u poruku.</p>
+      </div>
+      <a class="btn btn--volt bag__go" data-bag-mail href={`mailto:${email}`}><Icon name="mail" size={18} /> Pošalji porudžbinu emailom</a>
+      <button class="bag__clear" data-bag-clear>Isprazni korpu</button>
+    </aside>
+  </section>
+</Base>
+
+<script>
+  import { cart, loadProducts, lineHTML, rsd, priceOf } from '../scripts/store.js';
+
+  const box = document.querySelector<HTMLElement>('[data-bag]')!;
+  const q = (s: string) => box.querySelector<HTMLElement>(s)!;
+
+  async function render() {
+    const { byId } = await loadProducts();
+    const rows = cart
+      .lines()
+      .map((l) => ({ ...l, p: byId.get(l.id) }))
+      .filter((l) => l.p);
+    q('[data-bag-lines]').innerHTML = rows.map((l) => lineHTML(l.p, l.qty)).join('');
+    q('[data-bag-empty]').hidden = rows.length > 0;
+    q('[data-bag-sum]').hidden = rows.length === 0;
+    const full = rows.reduce((n, l) => n + l.p.p * l.qty, 0);
+    const total = rows.reduce((n, l) => n + priceOf(l.p) * l.qty, 0);
+    q('[data-bag-n]').textContent = String(rows.reduce((n, l) => n + l.qty, 0));
+    q('[data-bag-subtotal]').textContent = rsd(full);
+    q('[data-bag-save]').textContent = full > total ? `−${rsd(full - total)}` : '0 RSD';
+    q('[data-bag-total]').textContent = rsd(total);
+    const body = [
+      'Zdravo, želim da poručim:',
+      '',
+      ...rows.map((l) => `${l.qty} × ${l.p.n} (šifra ${l.p.id}) = ${rsd(priceOf(l.p) * l.qty)}`),
+      '',
+      `Ukupno: ${rsd(total)}`,
+      '',
+      'Ime i prezime:',
+      'Adresa za isporuku:',
+      'Telefon:',
+    ].join('\n');
+    q('[data-bag-mail]').setAttribute('href', `mailto:${box.dataset.email}?subject=${encodeURIComponent('Porudžbina sa sajta')}&body=${encodeURIComponent(body)}`);
+  }
+
+  q('[data-bag-clear]').addEventListener('click', () => cart.clear());
+  document.addEventListener('store:change', render);
+  render();
+</script>
+
+<style>
+  .bag {
+    display: grid;
+    grid-template-columns: minmax(0, 1.6fr) minmax(280px, 1fr);
+    gap: clamp(24px, 4vw, 64px);
+    align-items: start;
+  }
+  .bag__lines ul {
+    border-top: 1px solid var(--line);
+  }
+  .bag__empty {
+    display: grid;
+    gap: 10px;
+    justify-items: start;
+  }
+  .bag__actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 10px;
+    flex-wrap: wrap;
+  }
+  .bag__sum {
+    position: sticky;
+    top: calc(var(--hdr, 106px) + 20px);
+    display: grid;
+    gap: 16px;
+    padding: clamp(20px, 2.4vw, 32px);
+    background: var(--white);
+    border-radius: var(--radius);
+  }
+  .bag__sum dl {
+    margin: 0;
+  }
+  .bag__sum dl div {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 8px 0;
+    font-size: 15px;
+  }
+  .bag__sum dd {
+    margin: 0;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+  }
+  .bag__total {
+    border-top: 1px solid var(--line);
+    margin-top: 6px;
+    padding-top: 14px !important;
+    font-size: 18px !important;
+  }
+  .bag__total dd {
+    font-size: 22px;
+    font-weight: 800;
+  }
+  .bag__soon {
+    padding: 14px 16px;
+    border-radius: var(--radius);
+    background: var(--paper);
+    font-size: 14px;
+  }
+  .bag__go {
+    width: 100%;
+    white-space: normal;
+    text-align: center;
+    padding-block: 12px;
+  }
+  .bag__clear {
+    justify-self: center;
+    font-size: 13px;
+    color: var(--muted);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    min-height: 36px;
+  }
+  @media (max-width: 960px) {
+    .bag {
+      grid-template-columns: 1fr;
+    }
+    .bag__sum {
+      position: static;
+    }
+  }
+</style>

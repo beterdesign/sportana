@@ -1,0 +1,25 @@
+---
+// Search results: every product is in the page; listing.js keeps the ones that match ?q= (ranked).
+import Base from '../layouts/Base.astro';
+import PageHead from '../components/PageHead.astro';
+import Listing from '../components/Listing.astro';
+import { getCategories, getProducts } from '../lib/sanity.js';
+
+const [categories, products] = await Promise.all([getCategories(), getProducts()]);
+---
+
+<Base title="Pretraga | Sportana" description="Pretražite svu sportsku i fitnes opremu Sportane po nazivu, brendu ili tipu proizvoda." noindex>
+  <PageHead title="Pretraga" crumbs={[{ label: 'Pretraga' }]}>
+    <p class="lead muted" data-q-title>Upišite naziv, brend ili tip proizvoda. Pretraga radi i bez kvačica.</p>
+  </PageHead>
+  <Listing products={products} categories={categories} query empty="Nema rezultata za ovu pretragu." />
+</Base>
+
+<script>
+  const q = new URLSearchParams(location.search).get('q');
+  const title = document.querySelector('[data-q-title]');
+  if (q && title) title.textContent = `Rezultati za „${q}”`;
+  if (q) document.title = `${q} | Pretraga | Sportana`;
+  // focus the field when someone lands here without a query
+  if (!q) (document.querySelector('[data-q]') as HTMLInputElement | null)?.focus({ preventScroll: true });
+</script>

@@ -1,0 +1,234 @@
+---
+// Product card: photo on a light stage (second photo on hover), badges, wishlist heart, quick add to cart.
+// The data-* attributes feed the filters on listing pages.
+import Icon from './Icon.astro';
+import { img, srcset, dims, rsd, fold } from '../lib/sanity.js';
+
+interface Props {
+  p: any;
+  eager?: boolean;
+  index?: number;
+}
+const { p, eager = false, index = 0 } = Astro.props;
+const [first, second] = p.images;
+const id = p._id.replace('product-', '');
+const { width, height } = dims(first);
+const sizes = '(max-width: 600px) 50vw, (max-width: 1100px) 33vw, 24vw';
+---
+
+<article
+  class="card"
+  data-card
+  data-id={id}
+  data-cat={p.category?.slug}
+  data-type={p.type}
+  data-brand={p.brand?.slug || ''}
+  data-price={p.now}
+  data-sale={p.sale ? 1 : 0}
+  data-off={p.off}
+  data-new={p.isNew ? 1 : 0}
+  data-text={fold(`${p.name} ${p.brand?.name || ''} ${p.type || ''} ${p.category?.title || ''}`)}
+  data-order={index}
+>
+  <div class="card__media">
+  <a href={p.href} class="card__stage" tabindex="-1" aria-hidden="true">
+    <img
+      class="card__img"
+      src={img(first, 600)}
+      srcset={srcset(first, [300, 600, 900])}
+      sizes={sizes}
+      alt=""
+      width={width}
+      height={height}
+      loading={eager ? 'eager' : 'lazy'}
+      decoding="async"
+    />
+    {
+      second && (
+        <img class="card__img card__img--alt" src={img(second, 600)} srcset={srcset(second, [300, 600, 900])} sizes={sizes} alt="" loading="lazy" decoding="async" />
+      )
+    }
+    <span class="card__badges">
+      {p.sale && <span class="badge">−{p.off}%</span>}
+      {p.isNew && <span class="badge badge--new">Novo</span>}
+      {!p.inStock && <span class="badge badge--out">Nema na stanju</span>}
+    </span>
+  </a>
+  <button class="card__wish" data-wish={id} aria-pressed="false" aria-label={`Sačuvaj: ${p.name}`}>
+    <Icon name="heart" size={20} />
+  </button>
+  <button class="card__add" data-add={id} aria-label={`Dodaj u korpu: ${p.name}`} disabled={!p.inStock}>
+    <Icon name="plus" size={18} />
+    <span>U korpu</span>
+  </button>
+  </div>
+  <div class="card__info">
+    {p.brand?.name ? <p class="card__brand">{p.brand.name}</p> : <p class="card__brand">{p.type}</p>}
+    <h3 class="card__name"><a href={p.href}>{p.name}</a></h3>
+    <p class="price card__price">
+      <span>{rsd(p.now)}</span>
+      {p.sale && <s>{rsd(p.price)}</s>}
+    </p>
+  </div>
+</article>
+
+<style>
+  .card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+  .card__stage {
+    position: relative;
+    display: block;
+    aspect-ratio: 4 / 5;
+    background: var(--white);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+  .card__img {
+    position: absolute;
+    inset: 8%;
+    width: 84%;
+    height: 84%;
+    object-fit: contain;
+    transition:
+      opacity 0.5s var(--ease),
+      transform 0.7s var(--ease);
+  }
+  .card__img--alt {
+    opacity: 0;
+  }
+  @media (hover: hover) {
+    .card:hover .card__img {
+      transform: scale(1.04);
+    }
+    .card:hover .card__img--alt {
+      opacity: 1;
+    }
+    .card:hover .card__img--alt ~ .card__img,
+    .card:has(.card__img--alt):hover .card__img:first-child {
+      opacity: 0;
+    }
+  }
+  .card__badges {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+  .card__wish {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    width: 40px;
+    height: 40px;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    color: var(--ink);
+    transition:
+      background 0.25s,
+      transform 0.3s var(--ease);
+  }
+  .card__wish:hover {
+    background: var(--paper);
+  }
+  .card__wish[aria-pressed='true'] :global(svg) {
+    fill: var(--ink);
+  }
+  .card__wish.is-pop {
+    animation: pop 0.45s var(--ease);
+  }
+  @keyframes pop {
+    50% {
+      transform: scale(1.3);
+    }
+  }
+  .card__info {
+    padding: 12px 2px 0;
+    display: grid;
+    gap: 4px;
+  }
+  .card__brand {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .card__name {
+    font-size: 15px;
+    font-weight: 500;
+    line-height: 1.3;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    overflow-wrap: anywhere;
+  }
+  .card__name a::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+  }
+  .card__price {
+    font-size: 15px;
+  }
+  .card__media {
+    position: relative;
+  }
+  .card__add {
+    position: absolute;
+    z-index: 2;
+    right: 10px;
+    bottom: 10px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 40px;
+    padding: 0 14px 0 12px;
+    border-radius: 999px;
+    background: var(--ink);
+    color: var(--paper);
+    font-size: 13px;
+    font-weight: 600;
+    opacity: 0;
+    transform: translateY(6px);
+    transition:
+      opacity 0.3s,
+      transform 0.4s var(--ease),
+      background 0.2s;
+  }
+  .card__add:hover {
+    background: var(--volt);
+    color: var(--ink);
+  }
+  .card__add:focus-visible,
+  .card:hover .card__add {
+    opacity: 1;
+    transform: none;
+  }
+  .card__wish {
+    z-index: 2;
+  }
+  .card__add[disabled] {
+    display: none;
+  }
+  @media (hover: none), (max-width: 760px) {
+    .card__add {
+      opacity: 1;
+      transform: none;
+      width: 40px;
+      padding: 0;
+      justify-content: center;
+    }
+    .card__add span {
+      display: none;
+    }
+  }
+</style>

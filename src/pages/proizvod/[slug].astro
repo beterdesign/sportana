@@ -1,0 +1,560 @@
+---
+import Base from '../../layouts/Base.astro';
+import Icon from '../../components/Icon.astro';
+import Rail from '../../components/Rail.astro';
+import { getProducts, getSettings, img, srcset, dims, rsd, richText, descriptionText } from '../../lib/sanity.js';
+
+export async function getStaticPaths() {
+  const products = await getProducts();
+  return products.map((p) => {
+    // related: same type first, then same category, never the product itself
+    const same = products.filter((q) => q._id !== p._id && q.category?.slug === p.category?.slug);
+    const related = [...same.filter((q) => q.type === p.type), ...same.filter((q) => q.type !== p.type)].slice(0, 12);
+    return { params: { slug: p.slug }, props: { p, related } };
+  });
+}
+
+const { p, related } = Astro.props;
+const settings = await getSettings();
+const id = p._id.replace('product-', '');
+const text = descriptionText(p.description);
+const description = (text ? `${p.name}: ${text}` : `${p.name} – ${p.type || p.category?.title} u Sportani. Cena ${rsd(p.now)}. Isporuka širom Srbije.`).slice(0, 158);
+
+const schema = {
+  '@context': 'https://schema.org',
+  '@type': 'Product',
+  name: p.name,
+  sku: p.kpId || id,
+  image: p.images.map((i) => img(i, 1200)),
+  description: text || `${p.name}, ${p.type || p.category?.title}.`,
+  category: [p.category?.title, p.type].filter(Boolean).join(' > '),
+  ...(p.brand ? { brand: { '@type': 'Brand', name: p.brand.name } } : {}),
+  offers: {
+    '@type': 'Offer',
+    url: `https://sportana.rs${p.href}`,
+    priceCurrency: 'RSD',
+    price: p.now,
+    availability: p.inStock ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
+    itemCondition: 'https://schema.org/NewCondition',
+    seller: { '@type': 'Organization', name: 'Sportana' },
+  },
+};
+---
+
+<Base title={`${p.name} | ${p.category?.title} | Sportana`} description={description} image={img(p.images[0], 1200)} schema={schema}>
+  <section class="pdp wrap">
+    <div class="pdp__gallery" data-gallery>
+      <div class="pdp__stage" data-qa-ignore>
+        <ul class="pdp__slides" data-slides>
+          {
+            p.images.map((im, i) => {
+              const d = dims(im);
+              return (
+                <li class="pdp__slide" id={`foto-${i + 1}`}>
+                  <img
+                    src={img(im, 1200)}
+                    srcset={srcset(im, [600, 900, 1200, 1600])}
+                    sizes="(max-width: 960px) 100vw, 55vw"
+                    alt={im.alt || p.name}
+                    width={d.width}
+                    height={d.height}
+                    loading={i ? 'lazy' : 'eager'}
+                    fetchpriority={i ? undefined : 'high'}
+                  />
+                </li>
+              );
+            })
+          }
+        </ul>
+        <span class="pdp__badges">
+          {p.sale && <span class="badge">−{p.off}%</span>}
+          {p.isNew && <span class="badge badge--new">Novo</span>}
+        </span>
+      </div>
+      {
+        p.images.length > 1 && (
+          <ul class="pdp__thumbs" aria-label="Fotografije">
+            {p.images.map((im, i) => (
+              <li>
+                <a href={`#foto-${i + 1}`} data-thumb={i} aria-current={i === 0 ? 'true' : undefined} aria-label={`Fotografija ${i + 1}`}>
+                  <img src={img(im, 200)} alt="" loading="lazy" width="80" height="80" />
+                </a>
+              </li>
+            ))}
+          </ul>
+        )
+      }
+    </div>
+
+    <div class="pdp__info">
+      <nav class="crumbs" aria-label="Putanja">
+        <a href="/prodavnica">Prodavnica</a> / <a href={`/kategorija/${p.category?.slug}`}>{p.category?.title}</a>
+        {p.type && <> / <a href={`/kategorija/${p.category?.slug}?tip=${encodeURIComponent(p.type)}`}>{p.type}</a></>}
+      </nav>
+      {p.brand && <a href={`/prodavnica?brend=${p.brand.slug}`} class="eyebrow pdp__brand">{p.brand.name}</a>}
+      <h1 class="pdp__title">{p.name}</h1>
+      <p class="price pdp__price">
+        <span>{rsd(p.now)}</span>
+        {p.sale && <s>{rsd(p.price)}</s>}
+        {p.sale && <span class="badge">Ušteda {rsd(p.price - p.now)}</span>}
+      </p>
+      <p class:list={['pdp__stock', { 'is-out': !p.inStock }]}>
+        <span class="pdp__dot" />
+        {p.inStock ? 'Na stanju' : 'Trenutno nema na stanju'}
+      </p>
+
+      <div class="pdp__buy">
+        <div class="qty pdp__qty" role="group" aria-label="Količina">
+          <button type="button" data-step="-1" aria-label="Manje">−</button>
+          <input id="qty" type="number" min="1" max="99" value="1" inputmode="numeric" aria-label="Količina" />
+          <button type="button" data-step="1" aria-label="Više">+</button>
+        </div>
+        <button class="btn btn--volt pdp__add" data-add={id} data-qty-from="#qty" disabled={!p.inStock}>
+          <Icon name="bag" size={20} /> Dodaj u korpu
+        </button>
+        <button class="pdp__wish" data-wish={id} aria-pressed="false" aria-label="Sačuvaj proizvod">
+          <Icon name="heart" size={22} />
+        </button>
+      </div>
+
+      <ul class="pdp__perks">
+        <li><Icon name="truck" size={20} /> Isporuka na adresu širom Srbije</li>
+        <li><Icon name="box" size={20} /> Novo, u originalnom pakovanju</li>
+        <li>
+          <Icon name="mail" size={20} /> Pitanje o proizvodu?{' '}
+          <a href={`mailto:${settings?.email || 'info@sportana.rs'}?subject=${encodeURIComponent(`Pitanje: ${p.name}`)}`}>Pišite nam</a>
+        </li>
+      </ul>
+
+      {
+        (p.description.length > 0 || p.specs.length > 0) && (
+          <div class="pdp__more">
+            {p.description?.length > 0 && (
+              <details open>
+                <summary>Opis</summary>
+                <div class="prose" set:html={richText(p.description)} />
+              </details>
+            )}
+            {p.specs?.length > 0 && (
+              <details open={!p.description?.length}>
+                <summary>Specifikacije</summary>
+                <dl class="specs">
+                  {p.specs.map((s) => (
+                    <div>
+                      <dt>{s.label}</dt>
+                      <dd>{s.value}</dd>
+                    </div>
+                  ))}
+                </dl>
+              </details>
+            )}
+          </div>
+        )
+      }
+      <dl class="specs pdp__facts">
+        <div><dt>Kategorija</dt><dd><a href={`/kategorija/${p.category?.slug}`}>{p.category?.title}</a></dd></div>
+        {p.type && <div><dt>Tip</dt><dd>{p.type}</dd></div>}
+        {p.brand && <div><dt>Brend</dt><dd>{p.brand.name}</dd></div>}
+        <div><dt>Šifra</dt><dd>{p.kpId || id}</dd></div>
+      </dl>
+    </div>
+  </section>
+
+  {related.length > 0 && <Rail title="Slično" eyebrow={p.type || p.category?.title} products={related} href={`/kategorija/${p.category?.slug}`} linkLabel={`Sve: ${p.category?.title}`} />}
+
+  <section class="recent" data-recent hidden>
+    <div class="section-head">
+      <h2 class="h2">Nedavno gledano</h2>
+    </div>
+    <ul class="recent__list wrap" data-recent-list></ul>
+  </section>
+</Base>
+
+<script>
+  import { recent, loadProducts, rsd, priceOf, esc } from '../../scripts/store.js';
+
+  const id = document.querySelector<HTMLElement>('[data-add]')?.dataset.add;
+
+  // quantity stepper
+  const qty = document.querySelector<HTMLInputElement>('#qty');
+  document.querySelectorAll<HTMLButtonElement>('[data-step]').forEach((b) =>
+    b.addEventListener('click', () => {
+      if (qty) qty.value = String(Math.min(99, Math.max(1, Number(qty.value) + Number(b.dataset.step))));
+    }),
+  );
+
+  // gallery: thumbs scroll the slides, the active thumb follows swipes
+  const slides = document.querySelector<HTMLElement>('[data-slides]');
+  const thumbs = [...document.querySelectorAll<HTMLAnchorElement>('[data-thumb]')];
+  thumbs.forEach((t) =>
+    t.addEventListener('click', (e) => {
+      e.preventDefault();
+      const i = Number(t.dataset.thumb);
+      slides?.scrollTo({ left: i * slides.clientWidth, behavior: 'smooth' });
+    }),
+  );
+  slides?.addEventListener(
+    'scroll',
+    () => {
+      const i = Math.round(slides.scrollLeft / slides.clientWidth);
+      thumbs.forEach((t, j) => t.toggleAttribute('aria-current', j === i));
+    },
+    { passive: true },
+  );
+
+  // recently viewed (shown before this product is added to the list)
+  (async () => {
+    const before = recent.ids().filter((x) => x !== id).slice(0, 6);
+    if (id) recent.push(id);
+    if (!before.length) return;
+    const { byId } = await loadProducts();
+    const items = before.map((x) => byId.get(x)).filter(Boolean);
+    if (!items.length) return;
+    document.querySelector('[data-recent-list]')!.innerHTML = items
+      .map(
+        (p) => `<li><a href="/proizvod/${p.s}" class="mini">
+          <span class="mini__img"><img src="${p.i}" alt="" loading="lazy" width="200" height="200" /></span>
+          <span class="mini__name">${esc(p.n)}</span>
+          <span class="mini__price">${rsd(priceOf(p))}</span></a></li>`,
+      )
+      .join('');
+    document.querySelector<HTMLElement>('[data-recent]')!.hidden = false;
+  })();
+</script>
+
+<style>
+  .pdp {
+    display: grid;
+    grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+    gap: clamp(24px, 4vw, 72px);
+    align-items: start;
+    padding-top: clamp(16px, 2vw, 32px);
+  }
+  .pdp__gallery {
+    position: sticky;
+    top: calc(var(--hdr, 106px) + 16px);
+    display: grid;
+    grid-template-columns: 80px minmax(0, 1fr);
+    gap: 14px;
+  }
+  .pdp__stage {
+    position: relative;
+    grid-column: 2;
+    grid-row: 1;
+    background: var(--white);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+  .pdp__slides {
+    display: flex;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+  }
+  .pdp__slides::-webkit-scrollbar {
+    display: none;
+  }
+  .pdp__slide {
+    flex: 0 0 100%;
+    scroll-snap-align: start;
+    aspect-ratio: 1;
+    display: grid;
+    place-items: center;
+    padding: 6%;
+  }
+  .pdp__slide img {
+    max-width: 100%;
+    max-height: 100%;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+  }
+  .pdp__badges {
+    position: absolute;
+    top: 14px;
+    left: 14px;
+    display: flex;
+    gap: 6px;
+  }
+  .pdp__thumbs {
+    grid-column: 1;
+    grid-row: 1;
+    display: grid;
+    gap: 8px;
+    align-content: start;
+  }
+  .pdp__thumbs a {
+    display: block;
+    width: 80px;
+    height: 80px;
+    border-radius: var(--radius);
+    background: var(--white);
+    box-shadow: inset 0 0 0 1px var(--line);
+    overflow: hidden;
+  }
+  .pdp__thumbs a[aria-current] {
+    box-shadow: inset 0 0 0 2px var(--ink);
+  }
+  .pdp__thumbs img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    padding: 6px;
+  }
+  .pdp__gallery:not(:has(.pdp__thumbs)) {
+    grid-template-columns: 1fr;
+  }
+  .pdp__gallery:not(:has(.pdp__thumbs)) .pdp__stage {
+    grid-column: 1;
+  }
+
+  .pdp__info {
+    display: grid;
+    gap: 16px;
+    justify-items: start;
+  }
+  .crumbs {
+    font-size: 13px;
+    color: var(--muted);
+  }
+  .crumbs a:hover {
+    color: var(--ink);
+    text-decoration: underline;
+  }
+  .pdp__brand {
+    color: var(--muted);
+  }
+  .pdp__brand:hover {
+    color: var(--ink);
+  }
+  .pdp__title {
+    font-stretch: 75%;
+    font-weight: 800;
+    font-size: clamp(2rem, 3.4vw, 3.4rem);
+    line-height: 0.98;
+    text-transform: uppercase;
+    text-wrap: balance;
+    overflow-wrap: anywhere;
+  }
+  .pdp__price {
+    font-size: clamp(1.4rem, 2vw, 1.9rem);
+    align-items: center;
+  }
+  .pdp__price s {
+    font-size: 0.7em;
+  }
+  .pdp__stock {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    font-weight: 600;
+  }
+  .pdp__dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: #2fb35a;
+    box-shadow: 0 0 0 4px rgba(47, 179, 90, 0.18);
+  }
+  .pdp__stock.is-out .pdp__dot {
+    background: var(--muted);
+    box-shadow: none;
+  }
+  .pdp__buy {
+    display: flex;
+    gap: 10px;
+    width: 100%;
+    margin-top: 6px;
+  }
+  .pdp__qty {
+    height: 56px;
+  }
+  .pdp__qty button {
+    width: 44px;
+    height: 56px;
+  }
+  .pdp__qty input {
+    width: 40px;
+    border: 0;
+    background: none;
+    text-align: center;
+    font-weight: 600;
+    -moz-appearance: textfield;
+    appearance: textfield;
+  }
+  .pdp__qty input::-webkit-inner-spin-button {
+    display: none;
+  }
+  .pdp__add {
+    flex: 1;
+    min-height: 56px;
+    font-size: 16px;
+  }
+  .pdp__wish {
+    width: 56px;
+    height: 56px;
+    flex-shrink: 0;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    box-shadow: inset 0 0 0 1.5px var(--ink);
+  }
+  .pdp__wish[aria-pressed='true'] :global(svg) {
+    fill: var(--ink);
+  }
+  .pdp__perks {
+    display: grid;
+    gap: 10px;
+    width: 100%;
+    padding: 18px 0;
+    border-block: 1px solid var(--line);
+    font-size: 14px;
+  }
+  .pdp__perks li {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .pdp__perks a {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    font-weight: 600;
+  }
+  .pdp__more {
+    width: 100%;
+  }
+  .pdp__more details {
+    border-bottom: 1px solid var(--line);
+  }
+  .pdp__more summary {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 0;
+    font-weight: 700;
+    font-size: 13px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    cursor: pointer;
+    list-style: none;
+  }
+  .pdp__more summary::-webkit-details-marker {
+    display: none;
+  }
+  .pdp__more summary::after {
+    content: '+';
+    font-size: 20px;
+    font-weight: 400;
+  }
+  .pdp__more details[open] summary::after {
+    content: '−';
+  }
+  .prose {
+    padding-bottom: 18px;
+    display: grid;
+    gap: 10px;
+    max-width: 62ch;
+  }
+  .prose :global(ul) {
+    list-style: disc;
+    padding-left: 20px;
+    display: grid;
+    gap: 4px;
+  }
+  .specs {
+    margin: 0;
+    width: 100%;
+    padding-bottom: 14px;
+  }
+  .specs div {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr);
+    gap: 16px;
+    padding: 9px 0;
+    border-bottom: 1px solid var(--line);
+    font-size: 14px;
+  }
+  .specs div:last-child {
+    border-bottom: 0;
+  }
+  .specs dt {
+    color: var(--muted);
+  }
+  .specs dd {
+    margin: 0;
+    font-weight: 500;
+  }
+  .specs a {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  /* recently viewed (rendered by the script above) */
+  .recent__list {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 14px;
+  }
+  .recent__list :global(.mini) {
+    display: grid;
+    gap: 6px;
+    font-size: 14px;
+  }
+  .recent__list :global(.mini__img) {
+    display: block;
+    aspect-ratio: 1;
+    background: var(--white);
+    border-radius: var(--radius);
+  }
+  .recent__list :global(.mini__img img) {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    padding: 10%;
+  }
+  .recent__list :global(.mini__name) {
+    line-height: 1.3;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .recent__list :global(.mini__price) {
+    font-weight: 700;
+  }
+
+  @media (max-width: 960px) {
+    .pdp {
+      grid-template-columns: 1fr;
+    }
+    .pdp__gallery {
+      position: static;
+      grid-template-columns: 1fr;
+    }
+    .pdp__stage {
+      grid-column: 1;
+    }
+    .pdp__thumbs {
+      grid-column: 1;
+      grid-row: 2;
+      display: flex;
+      overflow-x: auto;
+    }
+    .pdp__thumbs a {
+      width: 64px;
+      height: 64px;
+    }
+    .recent__list {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+  @media (max-width: 420px) {
+    .pdp__qty button {
+      width: 36px;
+    }
+    .pdp__qty input {
+      width: 30px;
+    }
+  }
+</style>

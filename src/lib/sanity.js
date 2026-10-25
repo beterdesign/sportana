@@ -1,22 +1,24 @@
-// Reads projects and journal posts from Sanity at build time.
-// The dataset is public, so no token is needed to read it.
+// Reads the shop from Sanity at build time: settings, categories, brands and products.
+// The dataset is public, so no token is needed to read it. Every query runs once per build (memoised).
 import { createClient } from '@sanity/client';
 import { toHTML } from '@portabletext/to-html';
 
-// Filled in by scripts/new-project.mjs once the Sanity project exists.
 const SANITY_PROJECT_ID = 'w1ng3i4w';
-// Before the CMS is connected every query returns nothing, so the site still builds.
-const connected = !SANITY_PROJECT_ID.startsWith('__');
 
 export const sanity = createClient({
-  projectId: connected ? SANITY_PROJECT_ID : 'unset',
+  projectId: SANITY_PROJECT_ID,
   dataset: 'production',
   apiVersion: '2025-02-19',
   useCdn: false, // builds should always see the latest published content
 });
-const fetchAll = (query) => (connected ? sanity.fetch(query) : Promise.resolve([]));
 
-// Sanity image URL from an image field, resized and served as WebP/AVIF by the CDN.
+const memo = new Map();
+const once = (key, query) => {
+  if (!memo.has(key)) memo.set(key, sanity.fetch(query));
+  return memo.get(key);
+};
+
+// Sanity image URL, resized and served as WebP/AVIF. fit=max: never upscale a small upload.
 export function img(image, width = 1600) {
   const ref = image?.asset?._ref || image?.asset?._id;
   if (!ref) return '';
@@ -24,91 +26,110 @@ export function img(image, width = 1600) {
   return `https://cdn.sanity.io/images/${SANITY_PROJECT_ID}/production/${id}-${size}.${ext}?w=${width}&fit=max&auto=format&q=80`;
 }
 
-// srcset for responsive images; fit=max means the CDN never upscales, so small uploads stay visible to npm run qa
-export function srcset(image, widths = [800, 1600, 2400, 3200]) {
-  return img(image) ? widths.map((w) => `${img(image, w)} ${w}w`).join(', ') : '';
+// widths are capped at the upload's own width, so the browser never picks an upscaled file
+export function srcset(image, widths = [400, 800, 1200, 1600, 2400, 3200]) {
+  const ref = image?.asset?._ref || image?.asset?._id;
+  if (!ref) return '';
+  const w = Number(ref.split('-')[2]?.split('x')[0]) || 9999;
+  const list = widths.filter((x) => x < w).concat(w <= widths.at(-1) ? [w] : []);
+  return list.map((x) => `${img(image, x)} ${x}w`).join(', ');
 }
 
-const projectFields = `
-  _id, title, "slug": slug.current, category, tag, excerpt, services, featured, order,
-  coverImage, "tone": coverImage.asset->metadata.palette.darkMuted.background
+// natural size of an upload, from the asset id (image-<hash>-<w>x<h>-<ext>)
+export function dims(image) {
+  const ref = image?.asset?._ref || image?.asset?._id || '';
+  const [w, h] = (ref.split('-')[2] || '').split('x').map(Number);
+  return { width: w || 1200, height: h || 1200 };
+}
+
+export const fold = (s = '') =>
+  s
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/đ/g, 'dj')
+    .replace(/[̀-ͯ]/g, '');
+
+export const rsd = (n) => `${String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, '.')} RSD`;
+
+export const getSettings = () => once('settings', `*[_id == "settings"][0]`);
+
+export const getCategories = () =>
+  once(
+    'categories',
+    `*[_type == "category"] | order(order asc) {
+      _id, title, "slug": slug.current, short, intro, image, types,
+      "count": count(*[_type == "product" && references(^._id)])
+    }`,
+  );
+
+export const getBrands = () =>
+  once(
+    'brands',
+    `*[_type == "brand"] | order(name asc) {
+      _id, name, "slug": slug.current, about,
+      "count": count(*[_type == "product" && references(^._id)]),
+      "cover": *[_type == "product" && references(^._id)] | order(price desc) [0].images[0]
+    }`,
+  );
+
+const productFields = `
+  _id, name, "slug": slug.current, type, price, salePrice, inStock, isNew, featured, kpId, images,
+  "category": category->{title, "slug": slug.current},
+  "brand": brand->{name, "slug": slug.current}
 `;
 
-const toCard = (p) => ({
-  ...p,
-  name: p.title,
-  desc: p.excerpt,
-  tags: p.services || [],
-  href: `/work/${p.slug}`,
-  image: img(p.coverImage, 1400),
-  tone: p.tone || '#1d1d1b',
+export async function getProducts() {
+  const list = await once('products', `*[_type == "product" && defined(slug.current)] | order(_createdAt desc) { ${productFields}, description, specs }`);
+  return list.map(toProduct);
+}
+
+function toProduct(p) {
+  const sale = p.salePrice && p.salePrice < p.price ? p.salePrice : null;
+  return {
+    ...p,
+    href: `/proizvod/${p.slug}`,
+    sale,
+    now: sale || p.price,
+    off: sale ? Math.round((1 - sale / p.price) * 100) : 0,
+    inStock: p.inStock !== false,
+    images: p.images || [],
+    description: p.description || [],
+    specs: p.specs || [],
+  };
+}
+
+// compact record for the client: search, filters, cart, wishlist
+export const toIndex = (p) => ({
+  id: p._id.replace('product-', ''),
+  s: p.slug,
+  n: p.name,
+  b: p.brand?.name || '',
+  bs: p.brand?.slug || '',
+  c: p.category?.slug || '',
+  ct: p.category?.title || '',
+  t: p.type || '',
+  p: p.price,
+  sp: p.sale || 0,
+  i: img(p.images[0], 400),
+  new: p.isNew ? 1 : 0,
+  st: p.inStock ? 1 : 0,
 });
 
-export async function getProjects() {
-  const list = await fetchAll(`*[_type == "project" && defined(slug.current)] | order(order asc) { ${projectFields} }`);
-  return list.map(toCard);
-}
-
-export async function getFeaturedProjects() {
-  const list = await fetchAll(`*[_type == "project" && defined(featured)] | order(featured asc) [0...5] { ${projectFields} }`);
-  return list.map(toCard);
-}
-
-export async function getProjectPages() {
-  const list = await fetchAll(`*[_type == "project" && defined(slug.current)] | order(order asc) {
-    ${projectFields}, liveUrl, year, partner, brief, scope, closing, gallery
-  }`);
-  return list.map(toCard);
-}
-
-const toPost = (p) => ({
-  ...p,
-  href: `/journal/${p.slug}`,
-  image: img(p.coverImage, 1400),
-});
-
-export async function getPosts() {
-  const list = await fetchAll(`*[_type == "post" && defined(slug.current)] | order(publishedAt desc) {
-    _id, title, "slug": slug.current, topic, publishedAt, excerpt, coverImage
-  }`);
-  return list.map(toPost);
-}
-
-export async function getPostPages() {
-  const list = await fetchAll(`*[_type == "post" && defined(slug.current)] | order(publishedAt desc) {
-    _id, title, "slug": slug.current, topic, publishedAt, excerpt, coverImage, body
-  }`);
-  return list.map(toPost);
-}
-
-const plain = (block) => (block.children || []).map((c) => c.text || '').join('');
-export const headingId = (text) =>
-  text
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/(^-|-$)/g, '');
-
-// h2 headings, for the article table of contents
-export const outline = (blocks = []) =>
-  blocks.filter((b) => b._type === 'block' && b.style === 'h2').map((b) => ({ text: plain(b), id: headingId(plain(b)) }));
-
-export const readingMinutes = (blocks = []) =>
-  Math.max(1, Math.round(blocks.filter((b) => b._type === 'block').map(plain).join(' ').split(/\s+/).length / 230));
+const plain = (blocks = []) =>
+  blocks
+    .filter((b) => b._type === 'block')
+    .map((b) => (b.children || []).map((c) => c.text || '').join(''))
+    .join(' ');
+export const descriptionText = (blocks) => plain(blocks).replace(/\s+/g, ' ').trim();
 
 const escape = (s = '') => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
 
-// Portable Text → HTML for the prose blocks on case study and article pages.
+// Portable Text → HTML for product descriptions
 export function richText(blocks = []) {
   return toHTML(blocks, {
     components: {
       types: {
-        image: ({ value }) =>
-          `<figure><img src="${img(value, 1800)}" alt="${escape(value.alt || '')}" loading="lazy" />${
-            value.caption ? `<figcaption>${escape(value.caption)}</figcaption>` : ''
-          }</figure>`,
-      },
-      block: {
-        h2: ({ children, value }) => `<h2 id="${headingId(plain(value))}">${children}</h2>`,
+        image: ({ value }) => `<figure><img src="${img(value, 1400)}" alt="${escape(value.alt || '')}" loading="lazy" /></figure>`,
       },
       marks: {
         link: ({ children, value }) => {

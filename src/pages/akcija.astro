@@ -1,0 +1,23 @@
+---
+import Base from '../layouts/Base.astro';
+import PageHead from '../components/PageHead.astro';
+import Listing from '../components/Listing.astro';
+import { getCategories, getProducts, getSettings } from '../lib/sanity.js';
+
+const [categories, products, settings] = await Promise.all([getCategories(), getProducts(), getSettings()]);
+const sale = products.filter((p) => p.sale).sort((a, b) => b.off - a.off);
+const max = sale[0]?.off || 0;
+---
+
+<Base
+  title="Akcija | Sportska oprema na sniženju | Sportana"
+  description={`Sportska i fitnes oprema po sniženim cenama${max ? `, do −${max}%` : ''}. ${sale.length} proizvoda na akciji u Sportani, dok traju zalihe.`}
+>
+  <PageHead
+    title={settings?.saleTitle || 'Akcija'}
+    eyebrow={sale.length ? `${sale.length} proizvoda · do −${max}%` : undefined}
+    text={settings?.saleText}
+    crumbs={[{ label: 'Prodavnica', href: '/prodavnica' }, { label: 'Akcija' }]}
+  />
+  <Listing products={sale} categories={categories} sort="off" empty="Trenutno nema proizvoda na akciji." />
+</Base>

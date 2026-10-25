@@ -1,0 +1,227 @@
+---
+// Full-screen menu: categories with their product types. On desktop, hovering a category shows its types and
+// photo on the right; on phones every category lists its types under it.
+import Icon from './Icon.astro';
+import { getCategories, img } from '../lib/sanity.js';
+import { infoLinks } from '../data/site.js';
+
+const categories = await getCategories();
+---
+
+<div class="menu" id="menu" data-menu hidden data-lenis-prevent>
+  <div class="menu__backdrop" data-menu-close></div>
+  <div class="menu__panel" role="dialog" aria-modal="true" aria-label="Meni">
+    <div class="menu__top">
+      <span class="eyebrow">Kategorije</span>
+      <button class="menu__close" data-menu-close aria-label="Zatvori meni"><Icon name="close" size={24} /></button>
+    </div>
+    <div class="menu__body">
+      <ul class="menu__cats">
+        {
+          categories.map((c, i) => (
+            <li class="menu__cat" data-menu-cat={i}>
+              <a href={`/kategorija/${c.slug}`} class="menu__cat-link">
+                <span class="menu__cat-title">{c.title}</span>
+                <span class="menu__cat-count">{c.count}</span>
+              </a>
+              <ul class="menu__types">
+                {c.types?.map((t) => (
+                  <li>
+                    <a href={`/kategorija/${c.slug}?tip=${encodeURIComponent(t)}`}>{t}</a>
+                  </li>
+                ))}
+              </ul>
+            </li>
+          ))
+        }
+      </ul>
+      <div class="menu__aside" aria-hidden="true">
+        {
+          categories.map((c, i) => (
+            <figure class="menu__photo" data-menu-photo={i} hidden={i !== 0}>
+              <img src={img(c.image, 900)} alt="" loading="lazy" width="900" height="506" />
+              <figcaption>
+                <span class="eyebrow">{c.short}</span>
+                <ul>
+                  {c.types?.map((t) => <li>{t}</li>)}
+                </ul>
+              </figcaption>
+            </figure>
+          ))
+        }
+      </div>
+    </div>
+    <div class="menu__foot">
+      <a href="/prodavnica" class="btn btn--volt">Sva prodavnica <Icon name="arrow" size={18} /></a>
+      <ul class="menu__links">
+        {infoLinks.map((l) => <li><a href={l.href}>{l.label}</a></li>)}
+      </ul>
+    </div>
+  </div>
+</div>
+
+<style>
+  .menu {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+  }
+  .menu__backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(11, 11, 10, 0.4);
+    animation: fade 0.3s ease both;
+  }
+  .menu__panel {
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: min(1180px, 100%);
+    background: var(--ink);
+    color: var(--paper);
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    animation: slide 0.55s var(--ease) both;
+  }
+  @keyframes slide {
+    from {
+      transform: translateX(-40px);
+      opacity: 0;
+    }
+  }
+  @keyframes fade {
+    from {
+      opacity: 0;
+    }
+  }
+  .menu__top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px var(--gutter);
+    border-bottom: 1px solid var(--line-light);
+    color: rgba(246, 245, 241, 0.6);
+  }
+  .menu__close {
+    width: 44px;
+    height: 44px;
+    display: grid;
+    place-items: center;
+    color: var(--paper);
+    border-radius: 50%;
+    transition: background 0.3s;
+  }
+  .menu__close:hover {
+    background: var(--ink-2);
+  }
+  .menu__body {
+    display: grid;
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+    gap: clamp(24px, 4vw, 64px);
+    padding: clamp(16px, 2.4vw, 32px) var(--gutter);
+    flex: 1;
+  }
+  .menu__cat-link {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    padding: 6px 0;
+  }
+  .menu__cat-title {
+    font-stretch: 68%;
+    font-weight: 800;
+    text-transform: uppercase;
+    font-size: clamp(1.9rem, 3.6vw, 3.3rem);
+    line-height: 1;
+    transition:
+      color 0.25s,
+      transform 0.4s var(--ease);
+  }
+  .menu__cat-count {
+    font-size: 12px;
+    font-weight: 600;
+    color: rgba(246, 245, 241, 0.5);
+  }
+  .menu__cat.is-active .menu__cat-title,
+  .menu__cat-link:hover .menu__cat-title {
+    color: var(--volt);
+    transform: translateX(6px);
+  }
+  .menu__types {
+    display: none;
+  }
+  .menu__aside {
+    position: relative;
+  }
+  .menu__photo {
+    position: sticky;
+    top: 0;
+  }
+  .menu__photo img {
+    width: 100%;
+    aspect-ratio: 16 / 10;
+    object-fit: cover;
+    border-radius: var(--radius);
+  }
+  .menu__photo figcaption {
+    padding-top: 18px;
+    color: rgba(246, 245, 241, 0.6);
+  }
+  .menu__photo ul {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 12px;
+  }
+  .menu__photo li {
+    padding: 6px 12px;
+    border: 1px solid var(--line-light);
+    border-radius: 999px;
+    color: var(--paper);
+    font-size: 13px;
+  }
+  .menu__foot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px 32px;
+    flex-wrap: wrap;
+    padding: 20px var(--gutter) 28px;
+    border-top: 1px solid var(--line-light);
+  }
+  .menu__links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 24px;
+    font-weight: 600;
+  }
+  .menu__links a:hover {
+    color: var(--volt);
+  }
+
+  @media (max-width: 860px) {
+    .menu__body {
+      grid-template-columns: 1fr;
+    }
+    .menu__aside {
+      display: none;
+    }
+    .menu__cat {
+      padding: 10px 0 14px;
+      border-bottom: 1px solid var(--line-light);
+    }
+    .menu__types {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px 14px;
+      margin-top: 6px;
+      font-size: 14px;
+      color: rgba(246, 245, 241, 0.72);
+    }
+    .menu__types a {
+      display: inline-block;
+      padding: 4px 0;
+    }
+  }
+</style>
