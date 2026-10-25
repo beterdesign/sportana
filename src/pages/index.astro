@@ -32,7 +32,7 @@ const itemList = {
         class="hero__poster"
         src={img(settings?.heroImage, 2400)}
         srcset={srcset(settings?.heroImage)}
-        sizes="100vw"
+        sizes="(max-aspect-ratio: 16/9) 180vh, 100vw"
         alt={settings?.heroImage?.alt || ''}
         fetchpriority="high"
       />
@@ -65,7 +65,7 @@ const itemList = {
         categories.map((c, i) => (
           <li class:list={['cats__item', { 'cats__item--wide': i < 2 }]}>
             <a href={`/kategorija/${c.slug}`} class="cats__link">
-              <img src={img(c.image, 1200)} srcset={srcset(c.image, [600, 900, 1200, 1600])} sizes={i < 2 ? '(max-width: 760px) 100vw, 50vw' : '(max-width: 760px) 100vw, 33vw'} alt={c.image?.alt || ''} loading="lazy" />
+              <img src={img(c.image, 1200)} srcset={srcset(c.image, [600, 900, 1200, 1600])} sizes={i < 2 ? '(max-width: 600px) 112vw, 56vw' : '(max-width: 600px) 112vw, (max-width: 960px) 67vw, 45vw'} alt={c.image?.alt || ''} loading="lazy" />
               <span class="cats__shade" />
               <span class="cats__text">
                 <span class="cats__count">{c.count} proizvoda</span>
@@ -160,7 +160,7 @@ const itemList = {
   <!-- about: pinned photo + text (Achilles Heel "About us") -->
   <section class="about wrap">
     <div class="about__photo">
-      <img src={img(categories.find((c) => c.slug === 'borilacki-sportovi')?.image, 1600)} alt="Bokser u rukavicama u polumračnoj sali" loading="lazy" />
+      <img src={img(categories.find((c) => c.slug === 'borilacki-sportovi')?.image, 1600)} srcset={srcset(categories.find((c) => c.slug === 'borilacki-sportovi')?.image)} sizes="(max-width: 960px) 134vw, 64vw" alt="Bokser u rukavicama u polumračnoj sali" loading="lazy" />
     </div>
     <div class="about__text">
       <p class="eyebrow muted" data-reveal>O nama</p>
@@ -536,7 +536,7 @@ const itemList = {
   }
   .about__photo img {
     width: 100%;
-    aspect-ratio: 4 / 5;
+    aspect-ratio: 4 / 3;
     object-fit: cover;
     border-radius: var(--radius);
   }

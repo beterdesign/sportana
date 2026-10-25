@@ -310,6 +310,7 @@ const schema = {
 
   .pdp__info {
     display: grid;
+    grid-template-columns: minmax(0, 1fr);
     gap: 16px;
     justify-items: start;
   }
@@ -388,6 +389,7 @@ const schema = {
   }
   .pdp__add {
     flex: 1;
+    min-width: 0;
     min-height: 56px;
     font-size: 16px;
   }
@@ -526,11 +528,11 @@ const schema = {
 
   @media (max-width: 960px) {
     .pdp {
-      grid-template-columns: 1fr;
+      grid-template-columns: minmax(0, 1fr);
     }
     .pdp__gallery {
       position: static;
-      grid-template-columns: 1fr;
+      grid-template-columns: minmax(0, 1fr);
     }
     .pdp__stage {
       grid-column: 1;
@@ -550,6 +552,10 @@ const schema = {
     }
   }
   @media (max-width: 420px) {
+    .pdp__add {
+      padding: 0 14px;
+      gap: 8px;
+    }
     .pdp__qty button {
       width: 36px;
     }

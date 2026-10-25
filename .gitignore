@@ -6,3 +6,5 @@ dist/
 teaser/
 qa/
 .claude/
+qa-run.log
+content/seed.log

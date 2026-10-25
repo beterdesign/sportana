@@ -342,7 +342,7 @@ for (const page of targets) {
 let done = 0;
 const total = jobs.length;
 await Promise.all(
-  Array.from({ length: 6 }, async () => {
+  Array.from({ length: Number(process.env.QA_CONCURRENCY) || 6 }, async () => {
     while (jobs.length) {
       await jobs.shift()();
       done++;

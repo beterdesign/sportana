@@ -60,7 +60,7 @@ const fmt = (n) => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
         <p class="h3">Filteri</p>
         <button class="filters__close" data-filters-close aria-label="Zatvori filtere"><Icon name="close" size={22} /></button>
       </div>
-      <div class="filters__scroll">
+      <div class="filters__scroll" data-qa-ignore>
         {
           query && (
             <div class="filters__group">
@@ -403,8 +403,7 @@ const fmt = (n) => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
     }
     @keyframes f-in {
       from {
-        transform: translateY(20px);
-        opacity: 0;
+        transform: translateY(24px);
       }
     }
     .filters__top,
@@ -441,11 +440,14 @@ const fmt = (n) => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
     .listing__tools {
       width: 100%;
     }
-    .listing__tools > * {
+    .listing__sort {
       flex: 1;
+      min-width: 0;
     }
     .listing__sort select {
       width: 100%;
+      padding-right: 34px;
+      background-position: right 14px center;
     }
   }
 </style>

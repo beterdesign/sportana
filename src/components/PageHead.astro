@@ -27,7 +27,7 @@ const schema = {
   {
     image && (
       <div class="phead__media">
-        <img src={img(image, 2400)} srcset={srcset(image)} sizes="100vw" alt={image.alt || ''} fetchpriority="high" />
+        <img src={img(image, 2400)} srcset={srcset(image)} sizes="(max-width: 760px) 180vw, min(100vw, 1920px)" alt={image.alt || ''} fetchpriority="high" />
       </div>
     )
   }
@@ -91,7 +91,7 @@ const schema = {
     display: flex;
     align-items: flex-end;
     padding-bottom: clamp(24px, 3vw, 44px);
-    margin-inline: var(--gutter);
+    margin-inline: max(var(--gutter), (100% - 1920px) / 2);
     margin-top: 16px;
     padding-inline: clamp(20px, 3vw, 48px);
     border-radius: var(--radius);

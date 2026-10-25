@@ -2,7 +2,7 @@
 // Full-screen menu: categories with their product types. On desktop, hovering a category shows its types and
 // photo on the right; on phones every category lists its types under it.
 import Icon from './Icon.astro';
-import { getCategories, img } from '../lib/sanity.js';
+import { getCategories, img, srcset } from '../lib/sanity.js';
 import { infoLinks } from '../data/site.js';
 
 const categories = await getCategories();
@@ -39,7 +39,7 @@ const categories = await getCategories();
         {
           categories.map((c, i) => (
             <figure class="menu__photo" data-menu-photo={i} hidden={i !== 0}>
-              <img src={img(c.image, 900)} alt="" loading="lazy" width="900" height="506" />
+              <img src={img(c.image, 900)} srcset={srcset(c.image, [600, 900, 1200, 1800])} sizes="(max-width: 860px) 1px, 45vw" alt="" loading="lazy" width="900" height="506" />
               <figcaption>
                 <span class="eyebrow">{c.short}</span>
                 <ul>
