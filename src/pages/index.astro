@@ -14,6 +14,16 @@ const featured = products.filter((p) => p.featured);
 const sale = products.filter((p) => p.sale).sort((a, b) => b.off - a.off);
 const topBrands = brands.filter((b) => b.count >= 2).sort((a, b) => b.count - a.count).slice(0, 10);
 const total = products.length;
+// category tiles in full rows of 2, 3, 4 (then 3, 4, …) on a 12-column grid, so no tile is left alone in a row
+const tileRows = [];
+for (let left = categories.length, k = 0; left > 0; k++) {
+  const want = k === 0 ? 2 : k % 2 ? 3 : 4;
+  const n = left < want ? left : left - want === 1 ? want - 1 : want;
+  tileRows.push(n);
+  left -= n;
+}
+const tiles = tileRows.flatMap((n) => Array.from({ length: n }, () => ({ span: 12 / n, size: n <= 2 ? 'l' : n === 3 ? 'm' : 's' })));
+const tileSizes = { l: '56vw', m: '45vw', s: '45vw' };
 const saleEnds = settings?.saleEnds && new Date(settings.saleEnds) > new Date() ? settings.saleEnds : null;
 
 const itemList = {
@@ -63,9 +73,9 @@ const itemList = {
     <ul class="cats__grid wrap">
       {
         categories.map((c, i) => (
-          <li class:list={['cats__item', { 'cats__item--wide': i < 2 }]}>
+          <li class:list={['cats__item', `cats__item--${tiles[i].size}`, { 'cats__item--lead': i === 0 && categories.length % 2 }]} style={`--span: ${tiles[i].span}`}>
             <a href={`/kategorija/${c.slug}`} class="cats__link">
-              <img src={img(c.image, 1200)} srcset={srcset(c.image, [600, 900, 1200, 1600])} sizes={i < 2 ? '(max-width: 600px) 112vw, 56vw' : '(max-width: 600px) 112vw, (max-width: 960px) 67vw, 45vw'} alt={c.image?.alt || ''} loading="lazy" />
+              <img src={img(c.image, 1200)} srcset={srcset(c.image, [600, 900, 1200, 1600])} sizes={`(max-width: 600px) 112vw, (max-width: 960px) ${i === 0 && categories.length % 2 ? '112vw' : '67vw'}, ${tileSizes[tiles[i].size]}`} alt={c.image?.alt || ''} loading="lazy" />
               <span class="cats__shade" />
               <span class="cats__text">
                 <span class="cats__count">{c.count} proizvoda</span>
@@ -298,14 +308,11 @@ const itemList = {
   /* categories */
   .cats__grid {
     display: grid;
-    grid-template-columns: repeat(6, minmax(0, 1fr));
+    grid-template-columns: repeat(12, minmax(0, 1fr));
     gap: clamp(8px, 1vw, 16px);
   }
   .cats__item {
-    grid-column: span 2;
-  }
-  .cats__item--wide {
-    grid-column: span 3;
+    grid-column: span var(--span, 4);
   }
   .cats__link {
     position: relative;
@@ -316,8 +323,14 @@ const itemList = {
     color: var(--paper);
     background: var(--ink-2);
   }
-  .cats__item--wide .cats__link {
+  .cats__item--l .cats__link {
     aspect-ratio: 16 / 10;
+  }
+  .cats__item--s .cats__link {
+    aspect-ratio: 1;
+  }
+  .cats__item--s .cats__short {
+    display: none;
   }
   .cats__link img {
     width: 100%;
@@ -584,9 +597,20 @@ const itemList = {
   }
 
   @media (max-width: 960px) {
-    .cats__item,
-    .cats__item--wide {
-      grid-column: span 3;
+    .cats__item {
+      grid-column: span 6;
+    }
+    .cats__item--lead {
+      grid-column: 1 / -1;
+    }
+    .cats__item .cats__link {
+      aspect-ratio: 4 / 3;
+    }
+    .cats__item--lead .cats__link {
+      aspect-ratio: 16 / 9;
+    }
+    .cats__item--s .cats__short {
+      display: block;
     }
     .brands,
     .about,
@@ -614,12 +638,11 @@ const itemList = {
     }
   }
   @media (max-width: 600px) {
-    .cats__item,
-    .cats__item--wide {
+    .cats__item {
       grid-column: 1 / -1;
     }
-    .cats__link,
-    .cats__item--wide .cats__link {
+    .cats__item .cats__link,
+    .cats__item--lead .cats__link {
       aspect-ratio: 16 / 10;
     }
     .hero {
